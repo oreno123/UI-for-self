@@ -88,6 +88,15 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
 }
 .dmp-bar{background:var(--border);border-radius:2px;transition:all .4s ease;height:6px}
 .dmp-block{background:var(--accent);border-radius:3px;transition:all .4s ease;opacity:.6}
+
+/* Brief input */
+.brief-input{
+  width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+  background:var(--bg2);color:var(--text);font-size:13px;line-height:1.6;
+  font-family:inherit;resize:vertical;min-height:60px;transition:border-color .2s;
+}
+.brief-input:focus{outline:none;border-color:var(--accent)}
+.brief-input::placeholder{color:var(--text3)}
 .rule-row .strictness{display:flex;gap:2px;margin-left:8px}
 .strictness-btn{padding:3px 8px;font-size:10px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s}
 .strictness-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -333,6 +342,13 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
       </div>
       <div class="json-preview-body" id="previewBody"></div>
     </div>
+  </div>
+
+  <!-- Content brief -->
+  <div class="section">
+    <div class="section-title">内容描述</div>
+    <div class="section-desc">描述你要做什么页面，打包进最终输出，粘贴即用</div>
+    <textarea class="brief-input" id="briefInput" rows="3" placeholder="例：做一个个人作品集落地页，3 个项目展示，深色调，简洁大气" oninput="updatePreview()"></textarea>
   </div>
 </main>
 
@@ -776,6 +792,8 @@ function buildOutput() {
     if (!out.source) out.source = {};
     out.source.style = sourceStyle;
   }
+  const brief = document.getElementById('briefInput').value.trim();
+  if (brief) out.brief = brief;
   return out;
 }
 
