@@ -42,6 +42,39 @@
 
 ---
 
+## Design Studio（交互式设计流水线）
+
+把选色、选风格、出成品串成一条流水线，配合 Claude Code 使用。
+
+### 流程
+
+```
+选色 (color-picker.html)
+  → 选风格 (style-picker.html)
+  → 品味约束 (taste-picker.html)
+  → 告诉 Claude 内容需求
+  → Claude 调用 skill 出成品
+```
+
+### 用法
+
+1. 打开 `design-studio/color-picker.html`，选 3-5 个颜色，点「确认选择」→ 复制 JSON
+2. 回到 Claude Code 粘贴选色结果
+3. Claude 生成带选色的风格选择页 → 打开选风格 → 复制 JSON
+4. 打开 `taste-picker.html`（带 `?colors=...&style=...` 参数），调整旋钮和规则，点「确认输出」→ 复制 JSON
+5. 回到 Claude Code 粘贴，然后告诉 Claude 你要做什么内容
+6. Claude 生成最终 HTML/PPT
+
+### 文件
+
+| 文件 | 说明 |
+|------|------|
+| [color-picker.html](design-studio/color-picker.html) | Step 1: Radix Colors 取色器，选色后导出 JSON |
+| [style-picker.html](design-studio/style-picker.html) | Step 2: 风格选择器，PPT 模板 + 网页品牌风格 |
+| [taste-picker.html](design-studio/taste-picker.html) | Step 3: 品味约束，反 AI 味规则 + 三旋钮调参，导出约束 JSON |
+
+---
+
 ## 约定
 
 - 每个组件一个目录或单文件，自包含，拖出来即可使用

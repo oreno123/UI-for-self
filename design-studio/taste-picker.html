@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Studio - 品味约束</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#ffffff;--bg2:#f8f8f8;--text:#1a1a1a;--text2:#666;--border:#e0e0e0;
+  --hover:#f0f0f0;--accent:#0090ff;--selection-ring:#0090ff;
+}
+.dark{
+  --bg:#111111;--bg2:#1a1a1a;--text:#eeeeee;--text2:#999;--border:#333;
+  --hover:#222;--accent:#3b9eff;--selection-ring:#3b9eff;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;padding:0 0 100px 0}
+
+header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(8px);transition:background .3s}
+header .left{display:flex;align-items:center;gap:12px}
+header .logo{font-size:15px;font-weight:800;letter-spacing:-0.03em;color:var(--accent)}
+header .logo span{color:var(--text2);font-weight:400}
+header .step{font-size:13px;font-weight:600;background:var(--accent);color:#fff;padding:3px 10px;border-radius:20px}
+header .controls{display:flex;gap:8px}
+.toggle-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:all .2s}
+.toggle-btn:hover{background:var(--hover)}
+.toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Context bar */
+.context-bar{max-width:1400px;margin:0 auto;padding:12px 24px 0;display:none}
+.context-bar.show{display:block}
+.context-bar-inner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.context-bar-inner strong{color:var(--text);font-weight:600}
+.color-dots{display:flex;gap:4px;margin-left:4px}
+.color-dot{width:20px;height:20px;border-radius:4px;border:1px solid var(--border)}
+.style-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--accent);color:#fff;border-radius:6px;font-size:11px;font-weight:600}
+
+main{max-width:1400px;margin:0 auto;padding:20px 24px}
+
+/* Section */
+.section{margin-bottom:28px}
+.section-title{font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.section-desc{font-size:13px;color:var(--text2);margin-bottom:14px}
+
+/* Dial */
+.dial-group{display:flex;flex-direction:column;gap:20px}
+.dial{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.dial-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dial-label{font-size:14px;font-weight:700}
+.dial-value{font-size:22px;font-weight:800;color:var(--accent);min-width:28px;text-align:right}
+.dial-sublabel{font-size:11px;color:var(--text2);margin-bottom:10px;min-height:16px}
+.dial-track{position:relative;width:100%;height:6px;background:var(--border);border-radius:3px;cursor:pointer}
+.dial-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:3px;transition:width .15s}
+.dial-thumb{position:absolute;top:50%;width:20px;height:20px;background:var(--accent);border:3px solid var(--bg);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:grab;transition:box-shadow .15s}
+.dial-thumb:hover{box-shadow:0 2px 8px rgba(0,144,255,.3)}
+.dial-thumb.dragging{cursor:grabbing;box-shadow:0 2px 12px rgba(0,144,255,.4)}
+.dial-ends{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text2)}
+.infer-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;transition:all .2s;margin-bottom:16px}
+.infer-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Rule groups */
+.rule-group{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px;background:var(--bg2)}
+.rule-group-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;transition:background .15s}
+.rule-group-header:hover{background:var(--hover)}
+.rule-group-header .title-area{display:flex;align-items:center;gap:8px}
+.rule-group-header .group-icon{font-size:16px}
+.rule-group-header .group-name{font-size:14px;font-weight:700}
+.rule-group-header .group-count{font-size:12px;color:var(--text2)}
+.rule-group-header .chevron{font-size:12px;color:var(--text2);transition:transform .2s}
+.rule-group-header .chevron.open{transform:rotate(180deg)}
+.rule-group-body{padding:0 16px 14px;display:none}
+.rule-group-body.open{display:block}
+
+/* Rule row */
+.rule-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)}
+.rule-row:first-child{border-top:none}
+.rule-row .rule-info{flex:1;min-width:0}
+.rule-row .rule-name{font-size:13px;font-weight:600}
+.rule-row .rule-desc{font-size:11px;color:var(--text2);margin-top:1px}
+.swatch-row{display:flex;align-items:center;gap:3px;margin-top:6px}
+.swatch-label{font-size:9px;font-weight:600;letter-spacing:.05em;margin-right:2px}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--border)}
+
+/* Mini dial previews */
+.dial-mini-preview{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
+  display:grid;gap:4px;transition:all .4s ease;
+}
+.dmp-bar{background:var(--border);border-radius:2px;transition:all .4s ease;height:6px}
+.dmp-block{background:var(--accent);border-radius:3px;transition:all .4s ease;opacity:.6}
+.rule-row .strictness{display:flex;gap:2px;margin-left:8px}
+.strictness-btn{padding:3px 8px;font-size:10px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s}
+.strictness-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.strictness-btn:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
+/* Toggle switch */
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-switch .slider{position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:all .2s}
+.toggle-switch .slider::before{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-switch input:checked+.slider{background:var(--accent)}
+.toggle-switch input:checked+.slider::before{transform:translateX(18px)}
+
+/* JSON preview */
+.json-preview{margin-top:8px}
+.json-preview-toggle{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:all .15s}
+.json-preview-toggle:hover{border-color:var(--accent)}
+.json-preview-toggle .arrow{font-size:10px;color:var(--text2);transition:transform .2s}
+.json-preview-toggle .arrow.open{transform:rotate(90deg)}
+.json-preview-body{display:none;margin-top:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;line-height:1.5;color:var(--text);max-height:300px;overflow-y:auto;word-break:break-all;white-space:pre-wrap}
+.json-preview-body.open{display:block}
+
+/* Bottom bar */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:12px 24px;display:flex;align-items:center;gap:16px;
+  transition:background .3s;backdrop-filter:blur(8px);
+}
+.bottom-bar .info{font-size:13px;color:var(--text2);white-space:nowrap}
+.bottom-bar .selection{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.reset-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;white-space:nowrap}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+.confirm-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+.confirm-btn:hover{opacity:.85}
+
+/* Success overlay */
+.success-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.success-overlay.show{display:flex}
+.success-card{background:var(--bg);border-radius:16px;padding:32px;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.success-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
+.success-card p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.success-card .result-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:left;font-family:monospace;font-size:11px;line-height:1.5;color:var(--text);max-height:280px;overflow-y:auto;word-break:break-all;white-space:pre-wrap;margin-bottom:16px}
+.success-card .close-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer}
+.success-card .close-btn:hover{opacity:.85}
+
+@media(max-width:900px){
+  main{padding:16px}
+  .dial-group{gap:14px}
+}
+
+/* Motion preview */
+.motion-preview{
+  position:relative;background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:16px 16px 12px;overflow:hidden;
+}
+.motion-badge{
+  position:absolute;top:10px;right:52px;font-size:10px;font-weight:700;
+  color:var(--accent);background:var(--bg);border:1px solid var(--accent);
+  padding:2px 8px;border-radius:4px;pointer-events:none;font-family:var(--mono);
+}
+.motion-replay{
+  position:absolute;top:8px;right:10px;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--text2);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.motion-replay:hover{border-color:var(--accent);color:var(--accent)}
+.motion-stage{
+  display:grid;grid-template-columns:1fr 2fr 1fr 1.5fr;gap:12px;
+  align-items:center;padding:24px 8px 8px;min-height:110px;
+}
+.mp-item{
+  border-radius:8px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);
+  will-change:transform,opacity;
+}
+.mp-title{
+  height:32px;background:var(--text);color:var(--bg);display:flex;align-items:center;
+  justify-content:center;font-weight:900;font-size:13px;letter-spacing:-.02em;
+}
+.mp-card{
+  height:56px;background:var(--bg);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+}
+.mp-btn{
+  height:32px;background:var(--accent);color:#fff;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;
+}
+.mp-list{
+  height:48px;background:var(--bg);border:1px dashed var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+}
+
+/* Motion levels */
+/* Level 1-2: static - nothing happens */
+.motion-stage.motion-1 .mp-item{opacity:1;transform:none;transition:none}
+
+/* Level 3-4: subtle fade + hover lift */
+.motion-stage.motion-3 .mp-item{
+  opacity:0;animation:mpFade .5s ease forwards;
+}
+.motion-stage.motion-3 .mp-item:nth-child(1){animation-delay:.05s}
+.motion-stage.motion-3 .mp-item:nth-child(2){animation-delay:.15s}
+.motion-stage.motion-3 .mp-item:nth-child(3){animation-delay:.25s}
+.motion-stage.motion-3 .mp-item:nth-child(4){animation-delay:.35s}
+.motion-stage.motion-3 .mp-item:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s}
+
+/* Level 5-6: stagger slide-in + hover scale + shadow */
+.motion-stage.motion-5 .mp-item{
+  opacity:0;animation:mpSlide .45s cubic-bezier(.16,1,.3,1) forwards;
+}
+.motion-stage.motion-5 .mp-item:nth-child(1){animation-delay:.05s}
+.motion-stage.motion-5 .mp-item:nth-child(2){animation-delay:.12s}
+.motion-stage.motion-5 .mp-item:nth-child(3){animation-delay:.19s}
+.motion-stage.motion-5 .mp-item:nth-child(4){animation-delay:.26s}
+.motion-stage.motion-5 .mp-item:hover{transform:scale(1.06);box-shadow:0 8px 24px rgba(0,0,0,.1);transition:transform .2s,box-shadow .2s}
+.motion-stage.motion-5 .mp-btn:hover{transform:scale(1.1)}
+
+/* Level 7-8: scroll-reveal with parallax + continuous pulse */
+.motion-stage.motion-7 .mp-item{
+  opacity:0;animation:mpReveal .6s cubic-bezier(.16,1,.3,1) forwards;
+}
+.motion-stage.motion-7 .mp-item:nth-child(1){animation-delay:.1s}
+.motion-stage.motion-7 .mp-item:nth-child(2){animation-delay:.25s}
+.motion-stage.motion-7 .mp-item:nth-child(3){animation-delay:.4s}
+.motion-stage.motion-7 .mp-item:nth-child(4){animation-delay:.55s}
+.motion-stage.motion-7 .mp-btn{animation:mpReveal .6s cubic-bezier(.16,1,.3,1) forwards, mpGlow 1.8s ease-in-out infinite .7s}
+.motion-stage.motion-7 .mp-card{animation:mpReveal .6s cubic-bezier(.16,1,.3,1) forwards, mpFloat 2.5s ease-in-out infinite .6s}
+.motion-stage.motion-7 .mp-title{animation:mpReveal .6s cubic-bezier(.16,1,.3,1) forwards, mpPulse 2s ease-in-out infinite .6s}
+
+/* Level 9-10: full choreography - bounce + spin + shake + float */
+.motion-stage.motion-9 .mp-item{
+  opacity:0;animation:mpBounce .55s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.motion-stage.motion-9 .mp-item:nth-child(1){animation-delay:.08s}
+.motion-stage.motion-9 .mp-item:nth-child(2){animation-delay:.18s}
+.motion-stage.motion-9 .mp-item:nth-child(3){animation-delay:.28s}
+.motion-stage.motion-9 .mp-item:nth-child(4){animation-delay:.38s}
+.motion-stage.motion-9 .mp-title{animation:mpBounce .55s cubic-bezier(.34,1.56,.64,1) forwards, mpTilt 3s ease-in-out infinite .6s}
+.motion-stage.motion-9 .mp-btn{animation:mpBounce .55s cubic-bezier(.34,1.56,.64,1) forwards, mpShake 1.2s ease-in-out infinite .6s}
+.motion-stage.motion-9 .mp-card{animation:mpBounce .55s cubic-bezier(.34,1.56,.64,1) forwards, mpFloat 1.8s ease-in-out infinite .6s}
+.motion-stage.motion-9 .mp-list{animation:mpBounce .55s cubic-bezier(.34,1.56,.64,1) forwards, mpPulse 1.5s ease-in-out infinite .6s}
+
+@keyframes mpFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mpSlide{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes mpReveal{from{opacity:0;transform:translateX(-30px) scale(.85)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes mpBounce{from{opacity:0;transform:translateY(32px) scale(.7) rotate(-3deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes mpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes mpGlow{0%,100%{box-shadow:0 0 0 0 rgba(0,144,255,0)}50%{box-shadow:0 0 16px 4px rgba(0,144,255,.25)}}
+@keyframes mpShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-3deg)}40%{transform:rotate(3deg)}60%{transform:rotate(-2deg)}80%{transform:rotate(1deg)}}
+@keyframes mpTilt{0%,100%{transform:rotate(0)}25%{transform:rotate(1.5deg)}75%{transform:rotate(-1.5deg)}}
+@keyframes mpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="left">
+    <div class="logo">Design Studio <span>/ Step 3</span></div>
+    <div class="step">品味约束</div>
+  </div>
+  <div class="controls">
+    <button class="toggle-btn" id="darkToggle" onclick="toggleDark()">&#9790; Dark</button>
+  </div>
+</header>
+
+<div class="context-bar" id="contextBar">
+  <div class="context-bar-inner" id="contextBarInner"></div>
+</div>
+
+<main>
+  <!-- Dials -->
+  <div class="section">
+    <div class="section-title">核心旋钮</div>
+    <div class="section-desc">调整三个核心参数，或从风格自动推断</div>
+    <button class="infer-btn" id="inferBtn" onclick="inferFromStyle()">从风格推断</button>
+    <div class="dial-group">
+      <div class="dial" data-dial="designVariance">
+        <div class="dial-header">
+          <div class="dial-label">设计方差</div>
+          <div class="dial-value" id="val-designVariance">7</div>
+        </div>
+        <div class="dial-sublabel" id="sub-designVariance">适度不对称，偏移重叠与混合比例</div>
+        <div class="dial-track" data-dial="designVariance">
+          <div class="dial-fill" id="fill-designVariance"></div>
+          <div class="dial-thumb" id="thumb-designVariance"></div>
+        </div>
+        <div class="dial-ends"><span>完美对称</span><span>艺术混乱</span></div>
+        <div class="dial-mini-preview" id="variancePreview"></div>
+      </div>
+      <div class="dial" data-dial="motionIntensity">
+        <div class="dial-header">
+          <div class="dial-label">动效强度</div>
+          <div class="dial-value" id="val-motionIntensity">6</div>
+        </div>
+        <div class="dial-sublabel" id="sub-motionIntensity">流体 CSS 过渡与入场编排</div>
+        <div class="dial-track" data-dial="motionIntensity">
+          <div class="dial-fill" id="fill-motionIntensity"></div>
+          <div class="dial-thumb" id="thumb-motionIntensity"></div>
+        </div>
+        <div class="dial-ends"><span>完全静态</span><span>电影级编排</span></div>
+      </div>
+      <div class="dial" data-dial="visualDensity">
+        <div class="dial-header">
+          <div class="dial-label">视觉密度</div>
+          <div class="dial-value" id="val-visualDensity">4</div>
+        </div>
+        <div class="dial-sublabel" id="sub-visualDensity">标准 Web 应用间距</div>
+        <div class="dial-track" data-dial="visualDensity">
+          <div class="dial-fill" id="fill-visualDensity"></div>
+          <div class="dial-thumb" id="thumb-visualDensity"></div>
+        </div>
+        <div class="dial-ends"><span>画廊级留白</span><span>紧凑数据</span></div>
+        <div class="dial-mini-preview" id="densityPreview"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule groups -->
+  <!-- Motion preview -->
+  <div class="section">
+    <div class="section-title">动效预览</div>
+    <div class="section-desc">拖动动效旋钮查看对应等级的实际效果</div>
+    <div class="motion-preview" id="motionPreview">
+      <div class="motion-badge" id="motionBadge">等级 5-6 · 流体</div>
+      <button class="motion-replay" onclick="replayMotion()">&#8635; 重播</button>
+      <div class="motion-stage" id="motionStage">
+        <div class="mp-title mp-item" id="mpTitle">标题文字</div>
+        <div class="mp-card mp-item" id="mpCard">卡片内容</div>
+        <div class="mp-btn mp-item" id="mpBtn">按钮</div>
+        <div class="mp-list mp-item" id="mpList">列表项</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule groups -->
+  <div class="section" id="ruleGroups"></div>
+
+  <!-- JSON preview -->
+  <div class="section">
+    <div class="json-preview">
+      <div class="json-preview-toggle" onclick="togglePreview()">
+        <span class="arrow" id="previewArrow">&#9654;</span>
+        预览输出 JSON
+      </div>
+      <div class="json-preview-body" id="previewBody"></div>
+    </div>
+  </div>
+</main>
+
+<div class="bottom-bar">
+  <div class="info">已调:</div>
+  <div class="selection" id="selectionText">23 条规则</div>
+  <button class="reset-btn" onclick="resetAll()">重置默认</button>
+  <button class="confirm-btn" onclick="confirmOutput()">确认输出</button>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <h2>品味约束已确认</h2>
+    <p>已复制到剪贴板，请回到 Claude Code 粘贴结果。<br>包含颜色、风格和品味约束。</p>
+    <div class="result-box" id="resultBox"></div>
+    <button class="close-btn" onclick="closeOverlay()">返回修改</button>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const dials = { designVariance: 7, motionIntensity: 6, visualDensity: 4 };
+let isDark = false;
+let sourceColors = null;
+let sourceStyle = null;
+
+const DIAL_LABELS = {
+  designVariance: {
+    '1-2': '严格对称网格，等间距，居中对齐',
+    '3-4': '轻微偏移，偶有重叠元素',
+    '5-6': '适度不对称，偏移重叠与混合比例',
+    '7-8': '强烈不对称，大块留白区域',
+    '9-10': '自由版式，瀑布流，极端比例'
+  },
+  motionIntensity: {
+    '1-2': '纯静态，仅 hover/active 交互',
+    '3-4': '微妙过渡，入场淡入',
+    '5-6': '流体 CSS 过渡与入场编排',
+    '7-8': '滚动驱动动画，视差效果',
+    '9-10': '全页编排，GSAP 滚动劫持，物理动效'
+  },
+  visualDensity: {
+    '1-2': '画廊级留白，巨大区段间距',
+    '3-4': '标准 Web 应用间距',
+    '5-6': '紧凑但舒适，信息明确',
+    '7-8': '密集布局，减少留白',
+    '9-10': '仪表盘级紧凑，等宽数字，1px 分割'
+  }
+};
+
+function getDialLabel(dial, val) {
+  const labels = DIAL_LABELS[dial];
+  const band = val <= 2 ? '1-2' : val <= 4 ? '3-4' : val <= 6 ? '5-6' : val <= 8 ? '7-8' : '9-10';
+  return labels[band];
+}
+
+// ── Rule Definitions ──
+const RULE_GROUPS = [
+  {
+    id: 'typography', name: '字体纪律', icon: 'Aa',
+    rules: [
+      { id: 'banInterDefault', name: '禁用 Inter 默认字体', desc: '避免 LLM 最常见的字体特征，优先 Geist/Satoshi/Outfit', strictness: false },
+      { id: 'banFrauncesInstrumentSerif', name: '禁用 Fraunces / Instrument Serif', desc: '这两个是 AI 最爱用的展示衬线体', strictness: false },
+      { id: 'serifOnlyWhenJustified', name: '衬线体需有明确理由', desc: '非编辑/奢侈/出版类项目默认不用衬线', strictness: true, strictnessOptions: [
+        { value: 'discouraged', label: '建议' }, { value: 'banned', label: '禁止' }
+      ], defaultStrictness: 'banned' }
+    ]
+  },
+  {
+    id: 'color', name: '色彩校准', icon: '&#9673;',
+    rules: [
+      { id: 'noAiPurple', name: '禁用 AI 紫色渐变', desc: '不使用 AI 标志性的紫色发光渐变（Lila Rule）', strictness: false, swatches: { banned: ['#7c3aed','#a855f7','#6366f1'], ok: ['#0090ff','#10b981','#f59e0b'] } },
+      { id: 'noPremiumConsumerBeigeBrass', name: '禁用暖米 + 黄铜配色', desc: '避免暖纸色背景 + 黄铜色强调的 AI 消费品套路', strictness: false, swatches: { banned: ['#f5f1ea','#b08947','#1a1714'], ok: ['#f0f0f0','#0090ff','#1a1a1a'] } },
+      { id: 'oneAccentLock', name: '锁定单一强调色', desc: '全页统一一个强调色，不中途变色', strictness: false }
+    ]
+  },
+  {
+    id: 'layout', name: '布局纪律', icon: '&#9638;',
+    rules: [
+      { id: 'antiCenterHero', name: 'Hero 不居中', desc: '高方差时避免居中 Hero，用分屏或左对齐', strictness: false },
+      { id: 'eyebrowLimit', name: 'Eyebrow 限制', desc: '小区块标签最多每 3 个区段 1 个', strictness: false },
+      { id: 'sectionVarietyEnforcement', name: '区段布局不重复', desc: '相邻区段使用不同布局家族', strictness: false },
+      { id: 'zigzagCap', name: '交替布局上限', desc: '左右图文交替最多连续 2 次', strictness: false }
+    ]
+  },
+  {
+    id: 'aiTells', name: 'AI 痕迹消除', icon: '&#10005;',
+    rules: [
+      { id: 'emDashBan', name: '禁用破折号 (em-dash)', desc: '破折号是 LLM 最强风格指纹，零容忍', strictness: true, strictnessOptions: [
+        { value: 'moderate', label: '中等' }, { value: 'strict', label: '严格' }
+      ], defaultStrictness: 'strict' },
+      { id: 'noFakeData', name: '禁止编造精确数据', desc: '不使用 AI 编造的虚假数字（如 92%、4.1x）', strictness: false },
+      { id: 'noDivFakeScreenshots', name: '禁止 div 伪造截图', desc: '不用 div 矩形模拟产品界面', strictness: false },
+      { id: 'noGenericNames', name: '禁止通用假名', desc: '不用 Jane Doe / Sarah Chan 等占位名', strictness: false }
+    ]
+  },
+  {
+    id: 'image', name: '图片策略', icon: '&#9633;',
+    rules: [
+      { id: 'requireRealImages', name: '要求真实图片', desc: '即使是极简风格也需要真实图片', strictness: false },
+      { id: 'noPlaceholderDivs', name: '禁止色块占位', desc: '不使用纯色块或手绘 SVG 填充图片区域', strictness: false }
+    ]
+  },
+  {
+    id: 'buttons', name: '按钮与内容', icon: '&#9776;',
+    rules: [
+      { id: 'contrastCheck', name: '按钮对比度检查', desc: 'WCAG AA 标准，按钮文字清晰可读', strictness: false },
+      { id: 'noWrap', name: '按钮文字不换行', desc: 'CTA 文字在桌面端必须单行', strictness: false },
+      { id: 'noDuplicateIntent', name: '不重复 CTA 意图', desc: '同一意图（如联系）只出现一次', strictness: false },
+      { id: 'heroWordLimits', name: 'Hero 文字上限', desc: '副标题最多 20 词，标题最多 2 行', strictness: false },
+      { id: 'quoteLineLimits', name: '引文最多 3 行', desc: '推荐语截断为片段，不展示全文', strictness: false },
+      { id: 'noDataDumpSections', name: '禁止数据堆砌', desc: '避免 20 行规格表，用卡片或分组替代', strictness: false }
+    ]
+  }
+];
+
+// Rule state: { ruleId: true/false } or { ruleId: { enabled: bool, strictness: 'value' } }
+const ruleState = {};
+
+function initRuleState() {
+  for (const g of RULE_GROUPS) {
+    for (const r of g.rules) {
+      if (r.strictness) {
+        ruleState[r.id] = { enabled: true, strictness: r.defaultStrictness };
+      } else {
+        ruleState[r.id] = true;
+      }
+    }
+  }
+}
+initRuleState();
+
+// ── Style → Dial inference ──
+const STYLE_DIAL_MAP = {
+  'guizang-magazine':[7,4,3],'guizang-swiss':[4,3,5],
+  'tf-ocean-depths':[5,4,4],'tf-sunset-boulevard':[8,6,3],'tf-forest-canopy':[5,3,3],
+  'tf-modern-minimalist':[4,3,2],'tf-golden-hour':[7,4,3],'tf-arctic-frost':[4,3,3],
+  'tf-desert-rose':[7,5,3],'tf-tech-innovation':[8,7,4],'tf-botanical-garden':[5,3,3],
+  'tf-midnight-galaxy':[9,7,3],
+  '8-bit-orbit':[9,6,4],'biennale-yellow':[7,3,4],'blockframe':[9,5,4],
+  'blue-professional':[4,3,4],'bold-poster':[9,5,3],'broadside':[7,4,4],
+  'capsule':[8,5,3],'cartesian':[5,3,4],'cobalt-grid':[6,4,4],'coral':[7,5,3],
+  'frosted':[7,5,4],'ink-wash':[5,2,2],'kinetic-type':[9,9,3],'kraft-paper':[6,3,3],
+  'luxe-noir':[7,4,3],'mineral':[6,3,4],'mint-fresh':[5,3,3],'mono-journal':[4,2,5],
+  'neon-gradient':[9,7,3],'newspaper':[5,2,6],'ocean':[6,4,2],'paper-stack':[6,3,3],
+  'photographic':[7,3,2],'pop-art':[10,6,4],'riso':[8,4,4],'spectrum':[9,6,3],
+  'stencil-tablet':[6,3,4],'studio':[9,6,3],'terminal':[6,2,5],'topo':[5,3,4],
+  'zen-garden':[3,2,1],
+  'da-vaporwave':[9,7,4],'da-cyberpunk':[10,8,4],'da-synthwave':[9,7,3],
+  'da-art-deco':[7,4,4],'da-bauhaus':[6,4,5],'da-scandinavian':[4,3,2],
+  'da-japandi':[3,2,2],'da-glassmorphism':[7,5,3],'da-neobrutalism':[9,5,4],
+  'da-steampunk':[8,5,4],'da-memphis':[9,5,4],'da-brutalism':[8,3,3],
+  'da-aurora':[8,6,3],'da-cottagecore':[5,3,3],'da-y2k':[9,6,3],'da-kawaii':[8,5,3],
+  'da-lofi':[6,3,3],'da-ethereal':[6,4,2],'da-baroque':[8,4,4],'da-bento-grid':[7,5,4],
+  'apple':[4,4,2],'stripe':[8,7,3],'notion':[5,3,4],'linear':[6,6,3],
+  'vercel':[5,5,3],'figma':[7,5,3],'spotify':[7,5,4],'airbnb':[7,5,3],
+  'nike':[9,7,3],'tesla':[8,6,3],'github':[5,3,4],'dribbble':[7,5,3],
+  'medium':[6,3,3],'product-hunt':[6,4,4],'brutalist':[9,3,4]
+};
+
+const TAG_INFERENCE = [
+  { keywords: ['极简','留白','clean','minimal','精致'], v:5, m:3, d:2 },
+  { keywords: ['大胆','动态','bold','dynamic','大胆'], v:9, m:7, d:3 },
+  { keywords: ['科技','霓虹','tech','neon','高对比'], v:8, m:7, d:4 },
+  { keywords: ['优雅','温暖','elegant','warm','柔和'], v:6, m:4, d:3 },
+  { keywords: ['专业','数据','professional','信息密集'], v:4, m:3, d:5 },
+  { keywords: ['实验','粗野','experimental','brutal','原始'], v:9, m:5, d:4 }
+];
+
+function inferDials(styleId, tags) {
+  if (STYLE_DIAL_MAP[styleId]) {
+    return { v: STYLE_DIAL_MAP[styleId][0], m: STYLE_DIAL_MAP[styleId][1], d: STYLE_DIAL_MAP[styleId][2] };
+  }
+  if (tags && tags.length) {
+    let vs=[], ms=[], ds=[];
+    for (const t of tags) {
+      for (const inf of TAG_INFERENCE) {
+        if (inf.keywords.some(k => t.toLowerCase().includes(k.toLowerCase()))) {
+          vs.push(inf.v); ms.push(inf.m); ds.push(inf.d); break;
+        }
+      }
+    }
+    if (vs.length) {
+      return { v: Math.round(vs.reduce((a,b)=>a+b,0)/vs.length), m: Math.round(ms.reduce((a,b)=>a+b,0)/ms.length), d: Math.round(ds.reduce((a,b)=>a+b,0)/ds.length) };
+    }
+  }
+  return { v: 7, m: 6, d: 4 };
+}
+
+// ── URL params ──
+function loadParams() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const c = params.get('colors');
+    const s = params.get('style');
+    if (c) sourceColors = JSON.parse(decodeURIComponent(c));
+    if (s) sourceStyle = JSON.parse(decodeURIComponent(s));
+  } catch(e) {}
+
+  const bar = document.getElementById('contextBar');
+  const inner = document.getElementById('contextBarInner');
+  let html = '';
+  if (sourceColors) {
+    html += '<strong>选色:</strong><div class="color-dots">' +
+      sourceColors.colors.map(c => `<div class="color-dot" style="background:${c.hex}" title="${c.name} ${c.step}"></div>`).join('') + '</div>';
+  }
+  if (sourceStyle) {
+    html += `<span class="style-tag">${sourceStyle.styleName || sourceStyle.styleId}</span>`;
+  }
+  if (html) {
+    inner.innerHTML = html;
+    bar.classList.add('show');
+    inferFromStyle();
+  }
+}
+
+// ── Dial rendering ──
+function updateDial(dial) {
+  const val = dials[dial];
+  document.getElementById('val-' + dial).textContent = val;
+  document.getElementById('sub-' + dial).textContent = getDialLabel(dial, val);
+  const pct = ((val - 1) / 9) * 100;
+  document.getElementById('fill-' + dial).style.width = pct + '%';
+  document.getElementById('thumb-' + dial).style.left = pct + '%';
+  updatePreview();
+  updateSelectionText();
+  if (dial === 'motionIntensity') updateMotionPreview();
+  if (dial === 'designVariance') updateVariancePreview();
+  if (dial === 'visualDensity') updateDensityPreview();
+}
+
+function updateVariancePreview() {
+  const v = dials.designVariance;
+  const el = document.getElementById('variancePreview');
+  // Grid layout morphs from equal to asymmetric
+  const col1 = v <= 2 ? '1fr 1fr 1fr' : v <= 4 ? '1fr 1fr 1.2fr' : v <= 6 ? '2fr 1fr 1fr' : v <= 8 ? '3fr 1fr 2fr' : '1fr 3fr 1fr';
+  const h1 = v <= 2 ? '12px' : v <= 4 ? '14px' : v <= 6 ? '18px' : v <= 8 ? '22px' : '8px';
+  const h2 = v <= 2 ? '12px' : v <= 4 ? '10px' : v <= 6 ? '8px' : v <= 8 ? '12px' : '26px';
+  const h3 = v <= 2 ? '12px' : v <= 4 ? '12px' : v <= 6 ? '14px' : v <= 8 ? '6px' : '14px';
+  const ml = v <= 4 ? '0' : v <= 6 ? '8px' : v <= 8 ? '24px' : '40px';
+  el.style.gridTemplateColumns = col1;
+  el.innerHTML = `
+    <div class="dmp-block" style="height:${h1}"></div>
+    <div class="dmp-block" style="height:${h2};opacity:.3"></div>
+    <div class="dmp-block" style="height:${h3};margin-left:${ml}"></div>
+  `;
+}
+
+function updateDensityPreview() {
+  const v = dials.visualDensity;
+  const el = document.getElementById('densityPreview');
+  // Rows morph from spacious to packed
+  const gap = v <= 2 ? '10px' : v <= 4 ? '6px' : v <= 6 ? '4px' : v <= 8 ? '2px' : '1px';
+  const count = v <= 2 ? 2 : v <= 4 ? 3 : v <= 6 ? 4 : v <= 8 ? 5 : 7;
+  const h = v <= 2 ? '8px' : v <= 4 ? '6px' : v <= 6 ? '5px' : v <= 8 ? '4px' : '3px';
+  el.style.gap = gap;
+  el.style.gridTemplateColumns = '1fr';
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    const w = 60 + Math.floor((v / 10) * 30);
+    html += `<div class="dmp-bar" style="height:${h};width:${w}%"></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function updateMotionPreview() {
+  const v = dials.motionIntensity;
+  const stage = document.getElementById('motionStage');
+  const badge = document.getElementById('motionBadge');
+  const cls = v <= 2 ? 'motion-1' : v <= 4 ? 'motion-3' : v <= 6 ? 'motion-5' : v <= 8 ? 'motion-7' : 'motion-9';
+  const label = v <= 2 ? '等级 1-2 · 静态' : v <= 4 ? '等级 3-4 · 微动' : v <= 6 ? '等级 5-6 · 流体' : v <= 8 ? '等级 7-8 · 编排' : '等级 9-10 · 电影级';
+  stage.className = 'motion-stage ' + cls;
+  badge.textContent = label;
+  replayMotion();
+}
+
+function replayMotion() {
+  const stage = document.getElementById('motionStage');
+  const items = stage.querySelectorAll('.mp-item');
+  items.forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+}
+
+function initDials() {
+  document.querySelectorAll('.dial-track').forEach(track => {
+    const dial = track.dataset.dial;
+    const thumb = document.getElementById('thumb-' + dial);
+    let dragging = false;
+
+    function startDrag(e) {
+      e.preventDefault();
+      dragging = true;
+      thumb.classList.add('dragging');
+      onMove(e);
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      const rect = track.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      dials[dial] = Math.round(pct * 9) + 1;
+      updateDial(dial);
+    }
+    function endDrag() {
+      dragging = false;
+      thumb.classList.remove('dragging');
+    }
+
+    thumb.addEventListener('mousedown', startDrag);
+    thumb.addEventListener('touchstart', startDrag, { passive: false });
+    track.addEventListener('mousedown', startDrag);
+    track.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+
+    updateDial(dial);
+  });
+}
+
+// ── Rule rendering ──
+function renderRules() {
+  const container = document.getElementById('ruleGroups');
+  let html = '';
+  for (const g of RULE_GROUPS) {
+    html += `<div class="rule-group" data-group="${g.id}">
+      <div class="rule-group-header" onclick="toggleGroup('${g.id}')">
+        <div class="title-area">
+          <span class="group-icon">${g.icon}</span>
+          <span class="group-name">${g.name}</span>
+          <span class="group-count" id="count-${g.id}">${countActive(g)}/${g.rules.length}</span>
+        </div>
+        <span class="chevron" id="chevron-${g.id}">&#9660;</span>
+      </div>
+      <div class="rule-group-body" id="body-${g.id}">`;
+    for (const r of g.rules) {
+      const state = ruleState[r.id];
+      const checked = r.strictness ? state.enabled : state;
+      html += `<div class="rule-row">
+        <label class="toggle-switch">
+          <input type="checkbox" ${checked ? 'checked' : ''} data-rule="${r.id}" data-group="${g.id}" onchange="toggleRule('${r.id}','${g.id}',this)">
+          <span class="slider"></span>
+        </label>
+        <div class="rule-info">
+          <div class="rule-name">${r.name}</div>
+          <div class="rule-desc">${r.desc}</div>
+          ${r.swatches ? `<div class="swatch-row"><span class="swatch-label" style="color:var(--text3)">禁用</span>${r.swatches.banned.map(c=>`<span class="swatch" style="background:${c}" title="${c}"></span>`).join('')}<span style="color:var(--text3);margin:0 4px;font-size:10px">→</span><span class="swatch-label" style="color:var(--accent)">推荐</span>${r.swatches.ok.map(c=>`<span class="swatch" style="background:${c}" title="${c}"></span>`).join('')}</div>` : ''}
+        </div>`;
+      if (r.strictness) {
+        html += `<div class="strictness" id="strict-${r.id}">`;
+        for (const opt of r.strictnessOptions) {
+          const active = state.strictness === opt.value ? ' active' : '';
+          html += `<button class="strictness-btn${active}" onclick="setStrictness('${r.id}','${g.id}','${opt.value}',this)">${opt.label}</button>`;
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function countActive(g) {
+  let c = 0;
+  for (const r of g.rules) {
+    const s = ruleState[r.id];
+    if (r.strictness ? s.enabled : s) c++;
+  }
+  return c;
+}
+
+function toggleGroup(gid) {
+  const body = document.getElementById('body-' + gid);
+  const chev = document.getElementById('chevron-' + gid);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function toggleRule(rid, gid, el) {
+  const checked = el.checked;
+  if (ruleState[rid] && typeof ruleState[rid] === 'object') {
+    ruleState[rid].enabled = checked;
+  } else {
+    ruleState[rid] = checked;
+  }
+  // Show/hide strictness buttons
+  const strictEl = document.getElementById('strict-' + rid);
+  if (strictEl) strictEl.style.opacity = checked ? '1' : '0.3';
+  document.getElementById('count-' + gid).textContent = countActive(RULE_GROUPS.find(g => g.id === gid)) + '/' + RULE_GROUPS.find(g => g.id === gid).rules.length;
+  updatePreview();
+  updateSelectionText();
+}
+
+function setStrictness(rid, gid, value, el) {
+  el.parentNode.querySelectorAll('.strictness-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (typeof ruleState[rid] === 'object') ruleState[rid].strictness = value;
+  updatePreview();
+}
+
+// ── Infer from style ──
+function inferFromStyle() {
+  const id = sourceStyle ? sourceStyle.styleId : null;
+  const tags = sourceStyle ? sourceStyle.tags : [];
+  const inf = inferDials(id, tags);
+  dials.designVariance = inf.v;
+  dials.motionIntensity = inf.m;
+  dials.visualDensity = inf.d;
+  updateDial('designVariance');
+  updateDial('motionIntensity');
+  updateDial('visualDensity');
+  const btn = document.getElementById('inferBtn');
+  if (sourceStyle) {
+    btn.textContent = '已推断: ' + (sourceStyle.styleName || sourceStyle.styleId) + ' (' + inf.v + '/' + inf.m + '/' + inf.d + ')';
+  }
+}
+
+// ── Build output JSON ──
+function buildOutput() {
+  const rules = {};
+  for (const g of RULE_GROUPS) {
+    rules[g.id] = {};
+    for (const r of g.rules) {
+      const s = ruleState[r.id];
+      if (r.strictness) {
+        rules[g.id][r.id] = s.enabled ? s.strictness : false;
+      } else {
+        rules[g.id][r.id] = s;
+      }
+    }
+  }
+  const out = {
+    taste: {
+      dials: { designVariance: dials.designVariance, motionIntensity: dials.motionIntensity, visualDensity: dials.visualDensity },
+      rules: rules
+    }
+  };
+  if (sourceColors) out.source = { colors: sourceColors };
+  if (sourceStyle) {
+    if (!out.source) out.source = {};
+    out.source.style = sourceStyle;
+  }
+  return out;
+}
+
+function updatePreview() {
+  const body = document.getElementById('previewBody');
+  if (body.classList.contains('open')) {
+    body.textContent = JSON.stringify(buildOutput(), null, 2);
+  }
+}
+
+function togglePreview() {
+  const body = document.getElementById('previewBody');
+  const arrow = document.getElementById('previewArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+  if (body.classList.contains('open')) {
+    body.textContent = JSON.stringify(buildOutput(), null, 2);
+  }
+}
+
+// ── Bottom bar ──
+function updateSelectionText() {
+  let total = 0, active = 0;
+  for (const g of RULE_GROUPS) {
+    total += g.rules.length;
+    active += countActive(g);
+  }
+  document.getElementById('selectionText').textContent = `${active}/${total} 条规则 · 旋钮 ${dials.designVariance}/${dials.motionIntensity}/${dials.visualDensity}`;
+}
+
+// ── Reset ──
+function resetAll() {
+  initRuleState();
+  dials.designVariance = 7;
+  dials.motionIntensity = 6;
+  dials.visualDensity = 4;
+  renderRules();
+  updateDial('designVariance');
+  updateDial('motionIntensity');
+  updateDial('visualDensity');
+  if (sourceStyle) inferFromStyle();
+  updatePreview();
+  updateSelectionText();
+}
+
+// ── Confirm ──
+function confirmOutput() {
+  const json = JSON.stringify(buildOutput(), null, 2);
+  document.getElementById('resultBox').textContent = json;
+  navigator.clipboard.writeText(json).then(() => {
+    document.getElementById('successOverlay').classList.add('show');
+  }).catch(() => {
+    document.getElementById('successOverlay').classList.add('show');
+  });
+}
+
+function closeOverlay() {
+  document.getElementById('successOverlay').classList.remove('show');
+}
+
+function toggleDark() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  const btn = document.getElementById('darkToggle');
+  btn.classList.toggle('active', isDark);
+  btn.innerHTML = isDark ? '&#9788; Light' : '&#9790; Dark';
+}
+
+// ── Init ──
+loadParams();
+initDials();
+renderRules();
+updatePreview();
+updateSelectionText();
+updateMotionPreview();
+updateVariancePreview();
+updateDensityPreview();
+</script>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Studio - 选风格</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#ffffff;--bg2:#f8f8f8;--text:#1a1a1a;--text2:#666;--border:#e0e0e0;
+  --hover:#f0f0f0;--accent:#0090ff;--selection-ring:#0090ff;
+}
+.dark{
+  --bg:#111111;--bg2:#1a1a1a;--text:#eeeeee;--text2:#999;--border:#333;
+  --hover:#222;--accent:#3b9eff;--selection-ring:#3b9eff;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;padding:0 0 100px 0}
+
+header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(8px);transition:background .3s}
+header .left{display:flex;align-items:center;gap:12px}
+header .logo{font-size:15px;font-weight:800;letter-spacing:-0.03em;color:var(--accent)}
+header .logo span{color:var(--text2);font-weight:400}
+header .step{font-size:13px;font-weight:600;background:var(--accent);color:#fff;padding:3px 10px;border-radius:20px}
+header .controls{display:flex;gap:8px}
+.toggle-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:all .2s}
+.toggle-btn:hover{background:var(--hover)}
+.toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.color-bar{max-width:1400px;margin:0 auto;padding:12px 24px 0;display:none}
+.color-bar.show{display:block}
+.color-bar-inner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)}
+.color-bar-inner strong{color:var(--text);font-weight:600}
+.color-dots{display:flex;gap:4px;margin-left:8px}
+.color-dot{width:20px;height:20px;border-radius:4px;border:1px solid var(--border)}
+
+.tabs{max-width:1400px;margin:0 auto;padding:16px 24px 0;display:flex;gap:4px}
+.tab{padding:8px 20px;border-radius:8px 8px 0 0;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);border-bottom:none;background:var(--bg2);color:var(--text2);transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--bg);color:var(--accent);border-color:var(--accent);border-bottom:1px solid var(--bg);position:relative;z-index:1}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+main{max-width:1400px;margin:0 auto;padding:20px 24px}
+
+.section{margin-bottom:32px}
+.section-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.section-desc{font-size:13px;color:var(--text2);margin-bottom:14px}
+
+.style-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+
+/* Card */
+.style-card{
+  border:2px solid var(--border);border-radius:12px;cursor:pointer;
+  transition:all .2s;position:relative;background:var(--bg);overflow:hidden;
+}
+.style-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.style-card.selected{border-color:var(--selection-ring);box-shadow:0 0 0 2px var(--selection-ring)}
+.style-card .card-badge{position:absolute;top:8px;right:8px;font-size:10px;font-weight:600;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;z-index:2;display:none}
+.style-card.selected .card-badge{display:block}
+.card-body{padding:12px 14px 14px}
+.card-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.card-name-en{font-size:11px;color:var(--text2);font-weight:400;margin-bottom:6px}
+.card-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.card-tags .tag{font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid var(--border);color:var(--text2);background:var(--bg2)}
+
+/* Preview area */
+.preview{
+  width:100%;height:90px;position:relative;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.preview .p-bg{position:absolute;inset:0}
+.preview .p-line{position:absolute;border-radius:2px}
+.preview .p-block{position:absolute;border-radius:3px}
+.preview .p-circle{position:absolute;border-radius:50%}
+.preview .p-text{position:absolute;white-space:nowrap;overflow:hidden}
+.preview .p-bar{position:absolute;height:3px;border-radius:1.5px}
+
+/* Sub-style selector */
+.sub-styles{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:none}
+.style-card.selected .sub-styles{display:block}
+.sub-style-option{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 9px;margin:2px 3px 2px 0;
+  border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;
+  background:var(--bg2);transition:all .15s;
+}
+.sub-style-option:hover{border-color:var(--accent)}
+.sub-style-option.active{border-color:var(--accent);background:rgba(0,144,255,.1);color:var(--accent);font-weight:600}
+.sub-style-dot{width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.1)}
+
+/* Bottom bar */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:12px 24px;display:flex;align-items:center;gap:16px;
+  transition:background .3s;backdrop-filter:blur(8px);
+}
+.bottom-bar .info{font-size:13px;color:var(--text2);white-space:nowrap}
+.bottom-bar .selection{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.bottom-bar .selection.empty{color:var(--text2);font-weight:400}
+.confirm-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+.confirm-btn:hover{opacity:.85}
+.confirm-btn:disabled{opacity:.4;cursor:default}
+
+.success-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.success-overlay.show{display:flex}
+.success-card{background:var(--bg);border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+.success-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
+.success-card p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.success-card .result-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:left;font-family:monospace;font-size:12px;line-height:1.5;color:var(--text);max-height:200px;overflow-y:auto;word-break:break-all;margin-bottom:16px}
+.success-card .close-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer}
+.success-card .close-btn:hover{opacity:.85}
+
+@media(max-width:900px){
+  .style-grid{grid-template-columns:1fr}
+  main{padding:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="left">
+    <div class="logo">Design Studio <span>/ Step 2</span></div>
+    <div class="step">选风格</div>
+  </div>
+  <div class="controls">
+    <button class="toggle-btn" id="darkToggle" onclick="toggleDark()">&#9790; Dark</button>
+  </div>
+</header>
+
+<div class="color-bar" id="colorBar">
+  <div class="color-bar-inner">
+    <strong>你的选色:</strong>
+    <div class="color-dots" id="colorDots"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="ppt" onclick="switchTab('ppt')">PPT 演示文稿</div>
+  <div class="tab" data-tab="web" onclick="switchTab('web')">网页</div>
+</div>
+
+<main>
+  <div class="tab-content active" id="tab-ppt"></div>
+  <div class="tab-content" id="tab-web"></div>
+</main>
+
+<div class="bottom-bar">
+  <div class="info">已选:</div>
+  <div class="selection empty" id="selectionText">点击卡片选择风格</div>
+  <button class="confirm-btn" id="confirmBtn" disabled onclick="confirmSelection()">确认选择</button>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <h2>风格已选定</h2>
+    <p>已复制到剪贴板，请回到 Claude Code 粘贴结果。<br>也可以手动复制下方文本：</p>
+    <div class="result-box" id="resultBox"></div>
+    <button class="close-btn" onclick="closeOverlay()">返回修改</button>
+    <button class="close-btn" style="background:var(--accent);margin-top:8px" onclick="goToTastePicker()">下一步：品味约束 →</button>
+  </div>
+</div>
+
+<script>
+// Preview: each style has a `pv` object with bg, fg, accent, and layout hints
+// Layout types: hero(center big title), split(half/half), grid(blocks), sidebar, minimal, code, magazine, dark-bold
+function buildPreview(pv) {
+  const {bg, fg, accent, accent2, layout} = pv;
+  const f = fg || '#fff';
+  const a = accent || '#0090ff';
+  let inner = `<div class="p-bg" style="background:${bg}"></div>`;
+
+  switch(layout) {
+    case 'hero': // Centered big title + subtitle
+      inner += `
+        <div class="p-text" style="top:22px;left:0;right:0;text-align:center;font-size:18px;font-weight:800;color:${f};letter-spacing:-0.02em">TITLE</div>
+        <div class="p-bar" style="bottom:26px;left:50%;transform:translateX(-50%);width:40px;background:${a}"></div>
+        <div class="p-text" style="bottom:14px;left:0;right:0;text-align:center;font-size:8px;color:${f};opacity:.5">subtitle text here</div>`;
+      break;
+    case 'hero-serif':
+      inner += `
+        <div class="p-text" style="top:18px;left:0;right:0;text-align:center;font-family:Georgia,serif;font-size:20px;font-weight:700;color:${f};letter-spacing:-0.02em">TITLE</div>
+        <div class="p-text" style="top:44px;left:0;right:0;text-align:center;font-family:Georgia,serif;font-size:8px;color:${f};opacity:.4">subtitle goes here</div>
+        <div class="p-bar" style="bottom:18px;left:50%;transform:translateX(-50%);width:30px;background:${a}"></div>`;
+      break;
+    case 'split': // Left text, right color block
+      inner += `
+        <div class="p-block" style="right:0;top:0;bottom:0;width:40%;background:${a}"></div>
+        <div class="p-text" style="top:24px;left:14px;font-size:12px;font-weight:800;color:${f}">Title</div>
+        <div class="p-bar" style="top:42px;left:14px;width:50px;height:2px;background:${f};opacity:.3"></div>
+        <div class="p-text" style="top:50px;left:14px;font-size:7px;color:${f};opacity:.4">Description text</div>`;
+      break;
+    case 'grid': // Color block grid
+      inner += `
+        <div class="p-block" style="left:8%;top:12%;width:25%;height:35%;background:${a};opacity:.9"></div>
+        <div class="p-block" style="left:36%;top:12%;width:25%;height:35%;background:${a};opacity:.5"></div>
+        <div class="p-block" style="left:64%;top:12%;width:28%;height:35%;background:${accent2||a};opacity:.3"></div>
+        <div class="p-text" style="bottom:14px;left:8%;font-size:10px;font-weight:700;color:${f}">Grid Layout</div>
+        <div class="p-bar" style="bottom:10px;left:8%;width:30px;height:2px;background:${a}"></div>`;
+      break;
+    case 'sidebar': // Left sidebar + content
+      inner += `
+        <div class="p-block" style="left:0;top:0;bottom:0;width:25%;background:${a}"></div>
+        <div class="p-text" style="top:16px;left:30%;font-size:9px;font-weight:700;color:${f}">Section Title</div>
+        <div class="p-bar" style="top:30px;left:30%;width:40px;height:2px;background:${a}"></div>
+        <div class="p-line" style="top:38px;left:30%;width:55%;height:3px;background:${f};opacity:.12;border-radius:1px"></div>
+        <div class="p-line" style="top:45px;left:30%;width:45%;height:3px;background:${f};opacity:.08;border-radius:1px"></div>
+        <div class="p-line" style="top:52px;left:30%;width:50%;height:3px;background:${f};opacity:.06;border-radius:1px"></div>
+        <div class="p-line" style="top:62px;left:30%;width:35%;height:3px;background:${f};opacity:.12;border-radius:1px"></div>
+        <div class="p-line" style="top:69px;left:30%;width:40%;height:3px;background:${f};opacity:.08;border-radius:1px"></div>`;
+      break;
+    case 'minimal':
+      inner += `
+        <div class="p-text" style="top:30px;left:16px;font-size:11px;font-weight:300;color:${f};letter-spacing:0.05em">Minimal</div>
+        <div class="p-bar" style="top:48px;left:16px;width:20px;height:2px;background:${a}"></div>`;
+      break;
+    case 'code':
+      inner += `
+        <div class="p-text" style="top:10px;left:10px;font-family:monospace;font-size:7px;color:${a}">const</div>
+        <div class="p-text" style="top:10px;left:42px;font-family:monospace;font-size:7px;color:${f}">title =</div>
+        <div class="p-text" style="top:10px;left:80px;font-family:monospace;font-size:7px;color:${accent2||'#e5c07b'}">"Hello"</div>
+        <div class="p-line" style="top:22px;left:10px;width:85%;height:1px;background:${f};opacity:.06"></div>
+        <div class="p-text" style="top:28px;left:10px;font-family:monospace;font-size:7px;color:${f};opacity:.4">// your content</div>
+        <div class="p-text" style="top:40px;left:10px;font-family:monospace;font-size:7px;color:${a}">function</div>
+        <div class="p-text" style="top:40px;left:56px;font-family:monospace;font-size:7px;color:${accent2||'#e5c07b'}">render()</div>
+        <div class="p-text" style="top:52px;left:10px;font-family:monospace;font-size:7px;color:${f};opacity:.3">  return ...</div>
+        <div class="p-text" style="top:64px;left:10px;font-family:monospace;font-size:7px;color:${f};opacity:.2">}</div>`;
+      break;
+    case 'magazine':
+      inner += `
+        <div class="p-text" style="top:10px;left:12px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:${f};line-height:1">Magazine</div>
+        <div class="p-bar" style="top:38px;left:12px;width:80%;height:2px;background:${a}"></div>
+        <div class="p-line" style="top:48px;left:12px;width:70%;height:2px;background:${f};opacity:.15;border-radius:1px"></div>
+        <div class="p-line" style="top:55px;left:12px;width:60%;height:2px;background:${f};opacity:.10;border-radius:1px"></div>
+        <div class="p-text" style="bottom:10px;right:12px;font-size:7px;color:${f};opacity:.3">Page 01</div>`;
+      break;
+    case 'dark-bold':
+      inner += `
+        <div class="p-text" style="top:16px;left:14px;font-size:24px;font-weight:900;color:${a};letter-spacing:-0.03em">BOLD</div>
+        <div class="p-text" style="top:48px;left:14px;font-size:8px;font-weight:600;color:${f};opacity:.5">Your tagline here</div>`;
+      break;
+    case 'warm-center':
+      inner += `
+        <div class="p-block" style="left:0;top:0;bottom:0;width:100%;background:${bg};opacity:.5"></div>
+        <div class="p-text" style="top:20px;left:0;right:0;text-align:center;font-family:Georgia,serif;font-size:14px;font-weight:700;color:${f}">Warm Title</div>
+        <div class="p-text" style="top:40px;left:0;right:0;text-align:center;font-size:7px;color:${f};opacity:.4">elegant & refined</div>
+        <div class="p-circle" style="bottom:14px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:${a}"></div>`;
+      break;
+    case 'gradient-hero':
+      inner += `
+        <div class="p-bg" style="background:linear-gradient(135deg,${bg},${accent2||a})"></div>
+        <div class="p-text" style="top:24px;left:0;right:0;text-align:center;font-size:14px;font-weight:800;color:${f}">Gradient</div>
+        <div class="p-text" style="top:44px;left:0;right:0;text-align:center;font-size:7px;color:${f};opacity:.6">Beautiful gradients</div>`;
+      break;
+    case 'zen':
+      inner += `
+        <div class="p-text" style="top:34px;left:0;right:0;text-align:center;font-size:11px;font-weight:300;color:${f};letter-spacing:0.15em">zen</div>
+        <div class="p-bar" style="top:50px;left:50%;transform:translateX(-50%);width:12px;height:1px;background:${f};opacity:.3"></div>`;
+      break;
+    case 'brutalist':
+      inner += `
+        <div class="p-block" style="left:8px;top:8px;right:8px;bottom:8px;border:2px solid ${f}"></div>
+        <div class="p-text" style="top:20px;left:16px;font-size:14px;font-weight:900;color:${f}">RAW</div>
+        <div class="p-block" style="right:16px;top:20px;width:20px;height:20px;background:${a}"></div>
+        <div class="p-text" style="bottom:20px;left:16px;font-size:7px;color:${a}">brutalist style</div>`;
+      break;
+    case 'pixel':
+      const px = 'background:${a};width:6px;height:6px;position:absolute';
+      inner += `
+        <div style="${px};top:20px;left:20px"></div>
+        <div style="${px};top:20px;left:28px"></div>
+        <div style="${px};top:20px;left:36px"></div>
+        <div style="${px};top:28px;left:20px"></div>
+        <div style="${px};top:28px;left:36px"></div>
+        <div style="${px};top:36px;left:20px"></div>
+        <div style="${px};top:36px;left:28px"></div>
+        <div style="${px};top:36px;left:36px"></div>
+        <div style="position:absolute;top:52px;left:20px;font-size:7px;font-weight:700;color:${f};font-family:monospace">8-BIT</div>`;
+      break;
+    case 'card-grid':
+      inner += `
+        <div class="p-block" style="left:6%;top:10%;width:41%;height:35%;background:${a};opacity:.8;border-radius:4px"></div>
+        <div class="p-block" style="left:52%;top:10%;width:42%;height:35%;background:${accent2||a};opacity:.5;border-radius:4px"></div>
+        <div class="p-block" style="left:6%;top:52%;width:41%;height:35%;background:${accent2||a};opacity:.3;border-radius:4px"></div>
+        <div class="p-block" style="left:52%;top:52%;width:42%;height:35%;background:${a};opacity:.6;border-radius:4px"></div>`;
+      break;
+    default: // 'center' fallback
+      inner += `
+        <div class="p-text" style="top:24px;left:0;right:0;text-align:center;font-size:14px;font-weight:700;color:${f}">Title</div>
+        <div class="p-bar" style="top:44px;left:50%;transform:translateX(-50%);width:30px;background:${a}"></div>
+        <div class="p-text" style="bottom:16px;left:0;right:0;text-align:center;font-size:7px;color:${f};opacity:.4">description</div>`;
+  }
+  return `<div class="preview">${inner}</div>`;
+}
+
+// ── Style Data ──
+const PPT_SECTIONS = [
+  {
+    title: "Guizang PPT",
+    styles: [
+      {
+        id:"guizang-magazine",name:"电子杂志风",nameEn:"E-Magazine × E-Ink",
+        desc:"衬线字体 + 流体背景 + 暖色纸质调。墨香纸韵，文化展示、品牌故事。",
+        tags:["衬线体","流体背景","暖色调"],
+        pv:{bg:'#2c2c2c',fg:'#d4c5a9',accent:'#8b7355',layout:'hero-serif'},
+        subs:[
+          {name:"Monocle 经典",colors:["#2c2c2c","#8b7355","#d4c5a9"]},
+          {name:"靛蓝瓷器",colors:["#1a1a2e","#4a6fa5","#e8d5b7"]},
+          {name:"森林水墨",colors:["#1a2e1a","#4a7c59","#d4d4c0"]},
+          {name:"牛皮纸",colors:["#3e2f1c","#a08060","#e8dcc8"]},
+          {name:"沙丘",colors:["#2e2518","#c4956a","#f0e6d6"]},
+        ]
+      },
+      {
+        id:"guizang-swiss",name:"瑞士国际主义",nameEn:"Swiss International",
+        desc:"无衬线字体 + 严格网格 + 单色高亮。理性克制，数据报告、商业提案。",
+        tags:["无衬线","网格系统","高对比"],
+        pv:{bg:'#000',fg:'#fff',accent:'#002fa7',layout:'grid'},
+        subs:[
+          {name:"克莱因蓝",colors:["#002fa7","#ffffff","#000000"]},
+          {name:"柠檬黄",colors:["#fff000","#1a1a1a","#ffffff"]},
+          {name:"柠檬绿",colors:["#00ff00","#0a0a0a","#ffffff"]},
+          {name:"安全橙",colors:["#ff6600","#1a1a1a","#ffffff"]},
+        ]
+      }
+    ]
+  },
+  {
+    title: "Theme Factory",
+    styles: [
+      {id:"tf-ocean-depths",name:"深海",nameEn:"Ocean Depths",desc:"深海军蓝 + 海泡绿。专业冷静，企业报告、金融、咨询。",tags:["深海","专业","冷静"],pv:{bg:'#1a2332',fg:'#f1faee',accent:'#2d8b8b',layout:'hero'}},
+      {id:"tf-sunset-boulevard",name:"日落大道",nameEn:"Sunset Boulevard",desc:"焦橙 + 珊瑚 + 金沙。温暖活力，创意提案、营销、生活方式。",tags:["日落","暖色","活力"],pv:{bg:'#264653',fg:'#f4a261',accent:'#e76f51',layout:'dark-bold'}},
+      {id:"tf-forest-canopy",name:"森林冠层",nameEn:"Forest Canopy",desc:"森林绿 + 鼠尾草 + 橄榄。自然大地，环保、可持续、户外。",tags:["森林","大地色","自然"],pv:{bg:'#2d4a2b',fg:'#faf9f6',accent:'#7d8471',layout:'warm-center'}},
+      {id:"tf-modern-minimalist",name:"现代极简",nameEn:"Modern Minimalist",desc:"炭灰 + 石板灰 + 纯白。灰度极简，科技、建筑、设计展示。",tags:["极简","灰度","现代"],pv:{bg:'#ffffff',fg:'#36454f',accent:'#708090',layout:'minimal'}},
+      {id:"tf-golden-hour",name:"黄金时刻",nameEn:"Golden Hour",desc:"芥末黄 + 赤陶 + 巧克力棕。秋日暖调，餐饮、酒店、手工艺。",tags:["金色","秋日","温暖"],pv:{bg:'#4a403a',fg:'#d4b896',accent:'#f4a900',layout:'magazine'}},
+      {id:"tf-arctic-frost",name:"北极霜",nameEn:"Arctic Frost",desc:"冰蓝 + 钢蓝 + 银色。清凉精致，医疗、科技、冬季主题。",tags:["冰蓝","清凉","精致"],pv:{bg:'#fafafa',fg:'#4a6fa5',accent:'#d4e4f7',layout:'hero'}},
+      {id:"tf-desert-rose",name:"沙漠玫瑰",nameEn:"Desert Rose",desc:"尘粉 + 陶土 + 深酒红。柔和优雅，时尚、美妆、婚庆、室内设计。",tags:["尘粉","优雅","柔和"],pv:{bg:'#5d2e46',fg:'#e8d5c4',accent:'#d4a5a5',layout:'warm-center'}},
+      {id:"tf-tech-innovation",name:"科技创新",nameEn:"Tech Innovation",desc:"电光蓝 + 霓虹青 + 深灰。高对比科技风，AI、软件发布、数字转型。",tags:["科技","霓虹","高对比"],pv:{bg:'#1e1e1e',fg:'#ffffff',accent:'#0066ff',accent2:'#00ffff',layout:'gradient-hero'}},
+      {id:"tf-botanical-garden",name:"植物园",nameEn:"Botanical Garden",desc:"蕨绿 + 万寿菊 + 赤陶。清新有机，食品、农场、天然品牌。",tags:["植物","清新","有机"],pv:{bg:'#f5f3ed',fg:'#4a7c59',accent:'#f9a620',layout:'warm-center'}},
+      {id:"tf-midnight-galaxy",name:"午夜星河",nameEn:"Midnight Galaxy",desc:"深紫 + 宇宙蓝 + 薰衣草。戏剧感宇宙风，娱乐、游戏、奢侈品牌。",tags:["星空","深紫","戏剧"],pv:{bg:'#2b1e3e',fg:'#e6e6fa',accent:'#4a4e8f',accent2:'#a490c2',layout:'gradient-hero'}},
+    ]
+  },
+  {
+    title: "Slide Deck 模板",
+    styles: [
+      {id:"8-bit-orbit",name:"8-Bit 像素风",nameEn:"8-Bit Orbit",desc:"像素霓虹街机美学，深海军蓝底色。复古游戏、Web3。",tags:["像素风","霓虹","复古"],pv:{bg:'#0a0a2e',fg:'#00ff88',accent:'#ff00ff',layout:'pixel'}},
+      {id:"biennale-yellow",name:"双年展黄",nameEn:"Biennale Yellow",desc:"太阳黄配羊皮纸，深靛蓝衬线体。展览、文化机构。",tags:["展览风","衬线体","暖色"],pv:{bg:'#f5e6b8',fg:'#1a1a5e',accent:'#ffcc00',layout:'warm-center'}},
+      {id:"blockframe",name:"色块拼贴",nameEn:"BlockFrame",desc:"新粗野主义，粉彩霓虹色块 + 粗黑边框。创意机构。",tags:["粗野主义","粉彩","大胆"],pv:{bg:'#faf0e6',fg:'#1a1a1a',accent:'#ff6b9d',accent2:'#6bfff0',layout:'card-grid'}},
+      {id:"blue-professional",name:"蓝色专业",nameEn:"Blue Professional",desc:"奶油纸底 + 电钴蓝点缀。B2B SaaS、咨询。",tags:["专业","极简","蓝色"],pv:{bg:'#f5f0e8',fg:'#1a1a1a',accent:'#0047ab',layout:'split'}},
+      {id:"bold-poster",name:"粗体海报",nameEn:"Bold Poster",desc:"巨型展示字体 + 火红强调色。品牌宣言、戏剧化。",tags:["海报风","巨型字体","红色"],pv:{bg:'#fafafa',fg:'#1a1a1a',accent:'#ff2200',layout:'dark-bold'}},
+      {id:"broadside",name:"报纸风",nameEn:"Broadside",desc:"深色编辑画布 + 火焰橙强调。中英双语，文化提案。",tags:["报纸风","深色","编辑排版"],pv:{bg:'#1a1a1a',fg:'#e8d5b7',accent:'#ff6600',layout:'magazine'}},
+      {id:"capsule",name:"胶囊卡片",nameEn:"Capsule",desc:"药丸形卡片 + 粉彩流行色。Y2K 风格，生活方式。",tags:["Y2K","粉彩","模块化"],pv:{bg:'#fef0f5',fg:'#2a2a2a',accent:'#ff8fab',accent2:'#8fd4ff',layout:'card-grid'}},
+      {id:"cartesian",name:"笛卡尔",nameEn:"Cartesian",desc:"温暖中性色 + 古典 Playfair 衬线。投资报告。",tags:["古典","优雅","衬线体"],pv:{bg:'#f2ece4',fg:'#2a2520',accent:'#8b7355',layout:'warm-center'}},
+      {id:"cobalt-grid",name:"钴蓝网格",nameEn:"Cobalt Grid",desc:"电钴蓝衬线 + 方格纸画布。现代设计研究美学。",tags:["网格","蓝色","研究风"],pv:{bg:'#f8f8ff',fg:'#1a1a5e',accent:'#0047ab',layout:'sidebar'}},
+      {id:"coral",name:"珊瑚色",nameEn:"Coral",desc:"奶油珊瑚色 + 超大 Bebas Neue。时尚、生活方式。",tags:["珊瑚色","杂志风","温暖"],pv:{bg:'#1a1a1a',fg:'#ff8a80',accent:'#ff6b6b',layout:'dark-bold'}},
+      {id:"frosted",name:"磨砂玻璃",nameEn:"Frosted",desc:"毛玻璃卡片 + 渐变紫背景。现代 SaaS、科技产品。",tags:["毛玻璃","渐变","现代"],pv:{bg:'#6366f1',fg:'#fff',accent:'#a5b4fc',accent2:'#818cf8',layout:'gradient-hero'}},
+      {id:"ink-wash",name:"水墨",nameEn:"Ink Wash",desc:"水墨渲染 + 留白。东方美学，文化、艺术。",tags:["水墨","东方","留白"],pv:{bg:'#f5f0e8',fg:'#2a2520',accent:'#555',layout:'zen'}},
+      {id:"kinetic-type",name:"动态字体",nameEn:"Kinetic Type",desc:"大字体动效 + 黑白高对比。字体驱动视觉冲击。",tags:["动态","字体","黑白"],pv:{bg:'#0a0a0a',fg:'#fff',accent:'#fff',layout:'dark-bold'}},
+      {id:"kraft-paper",name:"牛皮纸",nameEn:"Kraft Paper",desc:"牛皮纸纹理 + 手写体点缀。手工艺、环保主题。",tags:["牛皮纸","手工感","环保"],pv:{bg:'#c4a882',fg:'#3e2f1c',accent:'#6b4226',layout:'magazine'}},
+      {id:"luxe-noir",name:"奢华黑",nameEn:"Luxe Noir",desc:"纯黑底 + 金色点缀。高端品牌、奢侈品。",tags:["奢华","金色","黑色"],pv:{bg:'#0a0a0a',fg:'#d4af37',accent:'#d4af37',layout:'hero-serif'}},
+      {id:"mineral",name:"矿石色",nameEn:"Mineral",desc:"矿物色调 + 几何装饰。自然、建筑、工作室。",tags:["矿石色","几何","自然"],pv:{bg:'#e8e0d8',fg:'#3a3530',accent:'#7a6e62',accent2:'#a09080',layout:'card-grid'}},
+      {id:"mint-fresh",name:"薄荷清新",nameEn:"Mint Fresh",desc:"薄荷绿 + 白色 + 圆角。清新、健康、教育。",tags:["薄荷绿","清新","圆角"],pv:{bg:'#f0faf5',fg:'#1a3a2a',accent:'#4ecdc4',layout:'split'}},
+      {id:"mono-journal",name:"单色期刊",nameEn:"Mono Journal",desc:"纯黑白 + 严谨期刊排版。学术、研究报告。",tags:["单色","期刊","学术"],pv:{bg:'#fafafa',fg:'#111',accent:'#111',layout:'magazine'}},
+      {id:"neon-gradient",name:"霓虹渐变",nameEn:"Neon Gradient",desc:"霓虹渐变 + 深色文字。科技、AI、未来主题。",tags:["霓虹","渐变","科技"],pv:{bg:'#0a0a2e',fg:'#fff',accent:'#00ff88',accent2:'#ff00ff',layout:'gradient-hero'}},
+      {id:"newspaper",name:"新闻纸",nameEn:"Newspaper",desc:"新闻纸质感 + 多栏排版。信息密集，媒体、报告。",tags:["新闻纸","多栏","信息密集"],pv:{bg:'#f0ebe0',fg:'#1a1a1a',accent:'#333',layout:'sidebar'}},
+      {id:"ocean",name:"深海",nameEn:"Ocean",desc:"深海蓝绿渐变 + 极简白字。冥想、环保。",tags:["深海","蓝绿","极简"],pv:{bg:'#0a2a3a',fg:'#e0f0f0',accent:'#2dd4bf',accent2:'#0e7490',layout:'gradient-hero'}},
+      {id:"paper-stack",name:"纸叠",nameEn:"Paper Stack",desc:"层叠纸张 + 温暖色调。手工感、叙事内容。",tags:["纸张","层叠","温暖"],pv:{bg:'#e8e0d0',fg:'#3a3020',accent:'#c4956a',layout:'warm-center'}},
+      {id:"photographic",name:"摄影画册",nameEn:"Photographic",desc:"全出血图片 + 极简文字。作品集、产品展示。",tags:["图片为主","极简文字","画册"],pv:{bg:'#2a2a2a',fg:'#fff',accent:'#fff',layout:'minimal'}},
+      {id:"pop-art",name:"波普艺术",nameEn:"Pop Art",desc:"波普色彩 + 粗线条 + 半调网点。创意、活动。",tags:["波普","大胆","彩色"],pv:{bg:'#ffeb3b',fg:'#1a1a1a',accent:'#ff1744',accent2:'#2979ff',layout:'brutalist'}},
+      {id:"riso",name:"Riso 印刷",nameEn:"Risograph",desc:"Riso 印刷质感 + 不对齐套色。独立出版、艺术。",tags:["Riso","印刷","独立"],pv:{bg:'#f5e6d0',fg:'#2a4a3a',accent:'#e06040',accent2:'#4060a0',layout:'card-grid'}},
+      {id:"spectrum",name:"光谱",nameEn:"Spectrum",desc:"彩虹渐变过渡。创意、多元、庆典主题。",tags:["彩虹","渐变","庆典"],pv:{bg:'#ff0080',fg:'#fff',accent:'#7928ca',accent2:'#ff4ecd',layout:'gradient-hero'}},
+      {id:"stencil-tablet",name:"模板石刻",nameEn:"Stencil & Tablet",desc:"骨色纸底 + 模板切割标题。博物馆、档案。",tags:["模板","石刻","文化"],pv:{bg:'#f0ebe0',fg:'#3a3530',accent:'#6b5b4a',layout:'hero-serif'}},
+      {id:"studio",name:"工作室",nameEn:"Studio",desc:"黑色画布 + 电黄色字体。创意工作室展示。",tags:["黄黑","创意","大胆"],pv:{bg:'#0a0a0a',fg:'#ffe600',accent:'#ffe600',layout:'dark-bold'}},
+      {id:"terminal",name:"终端机",nameEn:"Terminal",desc:"终端绿色等宽字体 + 黑底。开发者、极客风。",tags:["终端","等宽","绿字"],pv:{bg:'#0a0a0a',fg:'#00ff41',accent:'#00ff41',accent2:'#e5c07b',layout:'code'}},
+      {id:"topo",name:"地形图",nameEn:"Topographic",desc:"等高线纹理 + 中性色调。地理、规划、建筑。",tags:["等高线","地形","中性"],pv:{bg:'#e8e0d0',fg:'#5a5040',accent:'#8b7355',layout:'sidebar'}},
+      {id:"zen-garden",name:"枯山水",nameEn:"Zen Garden",desc:"大量留白 + 砂石纹理。极简东方美学。",tags:["留白","东方","极简"],pv:{bg:'#f0ebe0',fg:'#8b8070',accent:'#a09080',layout:'zen'}},
+    ]
+  },
+  {
+    title: "Design Aesthetics",
+    styles: [
+      {id:"da-vaporwave",name:"蒸汽波",nameEn:"Vaporwave",desc:"80s 复古未来主义，霓虹粉青 + 怀旧超现实。音乐、创意、实验。",tags:["蒸汽波","霓虹","复古"],pv:{bg:'#1a1a2e',fg:'#FFFB96',accent:'#FF71CE',accent2:'#01CDFE',layout:'gradient-hero'}},
+      {id:"da-cyberpunk",name:"赛博朋克",nameEn:"Cyberpunk",desc:"反乌托邦高科技黑色电影，电光霓虹对暗夜都市。游戏、前沿科技。",tags:["赛博朋克","霓虹","暗黑"],pv:{bg:'#0a0a14',fg:'#00FFF0',accent:'#FF003C',accent2:'#E94560',layout:'dark-bold'}},
+      {id:"da-synthwave",name:"合成波",nameEn:"Synthwave",desc:"80s 日落渐变 + 霓虹网格 + 棕榈剪影。活动海报、怀旧科技。",tags:["合成波","日落","80s"],pv:{bg:'#2B1055',fg:'#F6AD55',accent:'#D53F8C',accent2:'#63B3ED',layout:'gradient-hero'}},
+      {id:"da-art-deco",name:"装饰艺术",nameEn:"Art Deco",desc:"1920s 几何华丽，对称金色 + 大胆阶梯造型。奢侈、晚宴、时尚。",tags:["Art Deco","金色","对称"],pv:{bg:'#1B1B1B',fg:'#D4AF37',accent:'#D4AF37',layout:'hero-serif'}},
+      {id:"da-bauhaus",name:"包豪斯",nameEn:"Bauhaus",desc:"功能主义现代设计，三原色 + 几何网格。建筑、教育、设计展示。",tags:["包豪斯","三原色","几何"],pv:{bg:'#F5D800',fg:'#1A1A1A',accent:'#BE1E2D',accent2:'#21409A',layout:'card-grid'}},
+      {id:"da-scandinavian",name:"北欧极简",nameEn:"Scandinavian",desc:"轻盈通透的北欧功能主义，柔和自然色调。生活方式、SaaS。",tags:["北欧","极简","柔和"],pv:{bg:'#F8F6F7',fg:'#3B3B3B',accent:'#A8B09D',layout:'minimal'}},
+      {id:"da-japandi",name:"日式侘寂",nameEn:"Japandi",desc:"日本侘寂 × 北欧温暖，大地色禅意。养生、手作、冥想。",tags:["侘寂","大地色","禅意"],pv:{bg:'#EBE6D6',fg:'#3B3B3B',accent:'#707E57',layout:'zen'}},
+      {id:"da-glassmorphism",name:"毛玻璃",nameEn:"Glassmorphism",desc:"磨砂玻璃层次 + 柔光渐变背景。现代 SaaS、仪表盘。",tags:["毛玻璃","半透明","渐变"],pv:{bg:'#667EEA',fg:'#fff',accent:'#764BA2',accent2:'#F093FB',layout:'gradient-hero'}},
+      {id:"da-neobrutalism",name:"新粗野主义",nameEn:"Neubrutalism",desc:"粗黑边框 + 硬阴影 + 鲜艳饱和色。创意机构、开发者工具。",tags:["粗野主义","硬阴影","大胆"],pv:{bg:'#FFD700',fg:'#222',accent:'#FF4F00',accent2:'#00BFFF',layout:'brutalist'}},
+      {id:"da-steampunk",name:"蒸汽朋克",nameEn:"Steampunk",desc:"维多利亚工业幻想，黄铜齿轮 + 老旧机械质感。书籍、游戏、手工。",tags:["蒸汽朋克","黄铜","复古"],pv:{bg:'#3A2B21',fg:'#F3EFDC',accent:'#C58B3A',layout:'magazine'}},
+      {id:"da-memphis",name:"孟菲斯",nameEn:"Memphis",desc:"80s 后现代玩味，撞色 + 波浪线 + 几何。儿童产品、创意教育。",tags:["孟菲斯","撞色","玩味"],pv:{bg:'#FFFB96',fg:'#672394',accent:'#FF71CE',accent2:'#0CB2C0',layout:'card-grid'}},
+      {id:"da-brutalism",name:"粗野主义",nameEn:"Brutalism",desc:"刻意原始不加修饰，单色 + 实用结构。艺术画廊、独立杂志。",tags:["粗野","原始","单色"],pv:{bg:'#F2F2F2',fg:'#424242',accent:'#CC0000',layout:'brutalist'}},
+      {id:"da-aurora",name:"极光",nameEn:"Aurora",desc:"北极光灵感渐变，柔和发光色彩过渡。科技产品、创意背景。",tags:["极光","渐变","发光"],pv:{bg:'#667EEA',fg:'#fff',accent:'#43E97B',accent2:'#38F9D7',layout:'gradient-hero'}},
+      {id:"da-cottagecore",name:"田园牧歌",nameEn:"Cottagecore",desc:"浪漫乡村审美，大地植物色调。美食博客、手作、养生。",tags:["田园","植物","温暖"],pv:{bg:'#FCE4B4',fg:'#596854',accent:'#CC9A52',layout:'warm-center'}},
+      {id:"da-y2k",name:"千禧风",nameEn:"Y2K",desc:"2000 年代未来主义，铬金属 + 泡泡字体 + 虹彩。时尚、Z世代。",tags:["Y2K","金属","泡泡"],pv:{bg:'#C0C0C0',fg:'#7B68EE',accent:'#FF6EC7',accent2:'#00FFFF',layout:'card-grid'}},
+      {id:"da-kawaii",name:"卡哇伊",nameEn:"Kawaii",desc:"日系可爱美学，圆润造型 + 粉彩。儿童应用、文具、社交内容。",tags:["卡哇伊","粉彩","圆润"],pv:{bg:'#FFDAF5',fg:'#7B68EE',accent:'#BEFCFF',accent2:'#E6C6FF',layout:'card-grid'}},
+      {id:"da-lofi",name:"Lo-Fi",nameEn:"Lo-Fi",desc:"Lo-Fi 音乐 × 动画意象，紫色调怀旧。音乐流媒体、学习应用。",tags:["Lo-Fi","紫色","怀旧"],pv:{bg:'#674AB3',fg:'#CEA2D7',accent:'#A348A6',accent2:'#9075D8',layout:'zen'}},
+      {id:"da-ethereal",name:"空灵",nameEn:"Ethereal",desc:"梦幻柔焦，轻透层次 + 仙气色调。时尚画册、婚庆、美妆。",tags:["空灵","梦幻","柔焦"],pv:{bg:'#F9F6F2',fg:'#ACAEC5',accent:'#F08D7E',accent2:'#DDA6B9',layout:'zen'}},
+      {id:"da-baroque",name:"巴洛克",nameEn:"Baroque",desc:"华丽繁复装饰，宝石深色 + 古金。奢侈品、酒类、典礼。",tags:["巴洛克","华丽","宝石色"],pv:{bg:'#2C1320',fg:'#F5ECD7',accent:'#C9A959',layout:'hero-serif'}},
+      {id:"da-bento-grid",name:"便当盒布局",nameEn:"Bento Grid",desc:"日式便当盒模块化卡片，清晰分区。产品展示、功能页、仪表盘。",tags:["便当盒","模块化","网格"],pv:{bg:'#18181B',fg:'#F4F4F5',accent:'#8B5CF6',accent2:'#10B981',layout:'card-grid'}},
+    ]
+  }
+];
+
+const WEB_STYLES = [
+  {id:"apple",name:"Apple",desc:"极致简约，大量留白，精致排版。",tags:["极简","留白","精致"],pv:{bg:'#fbfbfd',fg:'#1d1d1f',accent:'#0071e3',layout:'minimal'}},
+  {id:"stripe",name:"Stripe",desc:"大胆渐变 + 精致动效。SaaS、开发者工具。",tags:["渐变","动效","现代"],pv:{bg:'#635bff',fg:'#fff',accent:'#a259ff',accent2:'#80e9ff',layout:'gradient-hero'}},
+  {id:"notion",name:"Notion",desc:"柔和现代 + 紫色点缀。知识管理、B2B。",tags:["柔和","紫色","现代"],pv:{bg:'#ffffff',fg:'#37352f',accent:'#9b59b6',layout:'sidebar'}},
+  {id:"linear",name:"Linear",desc:"深色主题 + 紫蓝渐变。开发者工具。",tags:["深色","渐变","精密"],pv:{bg:'#0a0a0a',fg:'#e0e0e0',accent:'#5e6ad2',accent2:'#8b5cf6',layout:'gradient-hero'}},
+  {id:"vercel",name:"Vercel",desc:"黑白高对比 + 三角元素。技术品牌。",tags:["黑白","高对比","技术"],pv:{bg:'#000',fg:'#fff',accent:'#fff',layout:'minimal'}},
+  {id:"figma",name:"Figma",desc:"多彩圆角 + 友好插画。设计工具。",tags:["多彩","圆角","友好"],pv:{bg:'#f5f5f5',fg:'#333',accent:'#a259ff',accent2:'#1abcfe',layout:'card-grid'}},
+  {id:"spotify",name:"Spotify",desc:"深色底 + 绿色强调 + 大字体。音乐、媒体。",tags:["深色","绿色","大胆"],pv:{bg:'#121212',fg:'#fff',accent:'#1db954',layout:'dark-bold'}},
+  {id:"airbnb",name:"Airbnb",desc:"温暖生活感 + 圆角卡片。旅游、社区。",tags:["温暖","圆角","生活感"],pv:{bg:'#ff385c',fg:'#fff',accent:'#ff385c',accent2:'#ff0a54',layout:'gradient-hero'}},
+  {id:"nike",name:"Nike",desc:"动态排版 + 大面积留白。运动、品牌。",tags:["动态","运动","大胆"],pv:{bg:'#fafafa',fg:'#111',accent:'#ff4d00',layout:'dark-bold'}},
+  {id:"tesla",name:"Tesla",desc:"未来感 + 深色 + 全出血图片。汽车、科技。",tags:["未来感","深色","全屏"],pv:{bg:'#0a0a0a',fg:'#e8e8e8',accent:'#cc0000',layout:'hero'}},
+  {id:"github",name:"GitHub",desc:"深色代码风 + 等宽字体。开发者、开源。",tags:["代码风","等宽","开发者"],pv:{bg:'#0d1117',fg:'#c9d1d9',accent:'#58a6ff',accent2:'#79c0ff',layout:'code'}},
+  {id:"dribbble",name:"Dribbble",desc:"粉色调 + 精致卡片。设计社区、作品集。",tags:["粉色","精致","设计"],pv:{bg:'#f3e8ee',fg:'#333',accent:'#ea4c89',layout:'card-grid'}},
+  {id:"medium",name:"Medium",desc:"舒适阅读 + 衬线标题。博客、出版。",tags:["阅读","衬线","舒适"],pv:{bg:'#ffc500',fg:'#1a1a1a',accent:'#1a1a1a',layout:'magazine'}},
+  {id:"product-hunt",name:"Product Hunt",desc:"橙色强调 + 卡片网格。产品发布、排行榜。",tags:["橙色","卡片","产品"],pv:{bg:'#fafafa',fg:'#333',accent:'#da552f',accent2:'#da552f',layout:'card-grid'}},
+  {id:"brutalist",name:"粗野主义",nameEn:"Brutalist",desc:"原始 HTML 感 + 粗边框。艺术、实验。",tags:["粗野","实验","原始"],pv:{bg:'#00ff00',fg:'#000',accent:'#ff0000',layout:'brutalist'}},
+];
+
+let currentTab = 'ppt';
+let selectedStyle = null;
+let selectedSub = null;
+let isDark = false;
+
+function loadColors() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const c = params.get('colors');
+    if (c) {
+      const userColors = JSON.parse(decodeURIComponent(c));
+      document.getElementById('colorBar').classList.add('show');
+      document.getElementById('colorDots').innerHTML = userColors.colors.map(c =>
+        `<div class="color-dot" style="background:${c.hex}" title="${c.name} ${c.step}"></div>`
+      ).join('');
+    }
+  } catch(e) {}
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id === 'tab-' + tab));
+}
+
+function renderPPT() {
+  const container = document.getElementById('tab-ppt');
+  let html = '';
+  for (const section of PPT_SECTIONS) {
+    html += `<div class="section"><div class="section-title">${section.title}</div><div class="style-grid">`;
+    for (const s of section.styles) {
+      const hasSubs = s.subs && s.subs.length > 0;
+      // Use first sub-style colors for initial preview if available
+      const initPv = hasSubs ? {bg:s.subs[0].colors[0], fg:s.subs[0].colors[1], accent:s.subs[0].colors[2], layout:s.pv.layout} : s.pv;
+      html += `<div class="style-card" data-id="${s.id}" data-layout="${s.pv.layout}" onclick="selectStyle('${s.id}',this)">
+        <div class="card-badge">已选</div>
+        <div class="preview-wrap">${buildPreview(initPv)}</div>
+        <div class="card-body">
+          <div class="card-name">${s.name}</div>
+          <div class="card-name-en">${s.nameEn||''}</div>
+          <div class="card-desc">${s.desc}</div>
+          <div class="card-tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          ${hasSubs?`<div class="sub-styles">${s.subs.map((sub,i)=>`<span class="sub-style-option${i===0?' active':''}" data-sub="${sub.name}" onclick="event.stopPropagation();selectSub('${s.id}','${sub.name}',this)">${sub.colors.map(c=>`<span class="sub-style-dot" style="background:${c}"></span>`).join('')}${sub.name}</span>`).join('')}</div>`:''}
+        </div>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function renderWeb() {
+  const container = document.getElementById('tab-web');
+  let html = '<div class="section"><div class="section-title">品牌风格模板</div><div class="section-desc">选择一个品牌视觉风格作为网页设计参考</div><div class="style-grid">';
+  for (const s of WEB_STYLES) {
+    html += `<div class="style-card" data-id="${s.id}" onclick="selectStyle('${s.id}',this)">
+      <div class="card-badge">已选</div>
+      ${buildPreview(s.pv)}
+      <div class="card-body">
+        <div class="card-name">${s.name}</div>
+        <div class="card-desc">${s.desc}</div>
+        <div class="card-tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
+function selectStyle(id, el) {
+  document.querySelectorAll('.style-card').forEach(c => { if (c !== el) c.classList.remove('selected'); });
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) {
+    selectedStyle = id;
+    const firstSub = el.querySelector('.sub-style-option.active');
+    selectedSub = firstSub ? firstSub.dataset.sub : null;
+  } else {
+    selectedStyle = null; selectedSub = null;
+  }
+  updateBottomBar();
+}
+
+function selectSub(styleId, subName, el) {
+  const card = el.closest('.style-card');
+  card.querySelectorAll('.sub-style-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  selectedStyle = styleId; selectedSub = subName;
+  // Update preview with sub-style colors
+  const layout = card.dataset.layout;
+  const colors = el.querySelectorAll('.sub-style-dot');
+  if (colors.length >= 3 && layout) {
+    const newPv = {
+      bg: rgbToHex(getComputedStyle(colors[0]).backgroundColor),
+      fg: rgbToHex(getComputedStyle(colors[1]).backgroundColor),
+      accent: rgbToHex(getComputedStyle(colors[2]).backgroundColor),
+      layout: layout
+    };
+    const wrap = card.querySelector('.preview-wrap');
+    if (wrap) wrap.innerHTML = buildPreview(newPv);
+  }
+  updateBottomBar();
+}
+
+function rgbToHex(rgb) {
+  const m = rgb.match(/\d+/g);
+  if (!m || m.length < 3) return rgb;
+  return '#' + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+function updateBottomBar() {
+  const text = document.getElementById('selectionText');
+  const btn = document.getElementById('confirmBtn');
+  if (!selectedStyle) { text.textContent = '点击卡片选择风格'; text.className = 'selection empty'; btn.disabled = true; return; }
+  btn.disabled = false; text.className = 'selection';
+  const all = [...PPT_SECTIONS.flatMap(s=>s.styles), ...WEB_STYLES];
+  const s = all.find(x => x.id === selectedStyle);
+  text.textContent = (s ? s.name : selectedStyle) + (selectedSub ? ` → ${selectedSub}` : '');
+}
+
+function confirmSelection() {
+  if (!selectedStyle) return;
+  const all = [...PPT_SECTIONS.flatMap(s=>s.styles), ...WEB_STYLES];
+  const s = all.find(x => x.id === selectedStyle);
+  const result = { category: currentTab === 'ppt' ? 'ppt' : 'web', styleId: selectedStyle, styleName: s ? s.name : selectedStyle, subStyle: selectedSub, tags: s ? s.tags : [] };
+  const json = JSON.stringify(result, null, 2);
+  document.getElementById('resultBox').textContent = json;
+  navigator.clipboard.writeText(json).then(() => { document.getElementById('successOverlay').classList.add('show'); }).catch(() => { document.getElementById('successOverlay').classList.add('show'); });
+}
+
+function closeOverlay() { document.getElementById('successOverlay').classList.remove('show'); }
+
+function goToTastePicker() {
+  const styleJson = document.getElementById('resultBox').textContent;
+  const params = new URLSearchParams(window.location.search);
+  const colors = params.get('colors') || '';
+  let url = 'taste-picker.html?style=' + encodeURIComponent(styleJson);
+  if (colors) url += '&colors=' + colors;
+  window.location.href = url;
+}
+
+function toggleDark() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  const btn = document.getElementById('darkToggle');
+  btn.classList.toggle('active', isDark);
+  btn.innerHTML = isDark ? '&#9788; Light' : '&#9790; Dark';
+}
+
+loadColors();
+
+// Double-click header to scroll to top
+document.querySelector('header').addEventListener('dblclick', () => {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+renderPPT();
+renderWeb();
+</script>
+</body>
+</html>
