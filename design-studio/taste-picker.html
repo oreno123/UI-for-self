@@ -97,6 +97,69 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
 }
 .brief-input:focus{outline:none;border-color:var(--accent)}
 .brief-input::placeholder{color:var(--text3)}
+
+/* Mood board */
+.moodboard{
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  transition:all .4s ease;
+}
+.mb-hero{
+  position:relative;padding:40px 32px 32px;min-height:140px;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:all .4s ease;
+}
+.mb-bg{position:absolute;inset:0;transition:all .4s ease}
+.mb-content{position:relative;z-index:1}
+.mb-eyebrow{
+  font-size:10px;letter-spacing:.15em;font-weight:600;margin-bottom:10px;
+  opacity:.5;transition:all .4s ease;
+}
+.mb-headline{
+  font-size:28px;font-weight:900;line-height:1.15;letter-spacing:-.03em;
+  margin-bottom:8px;transition:all .4s ease;max-width:80%;
+}
+.mb-sub{
+  font-size:13px;opacity:.6;margin-bottom:18px;max-width:60%;
+  line-height:1.5;transition:all .4s ease;
+}
+.mb-cta-row{display:flex;gap:8px;flex-wrap:wrap}
+.mb-cta{
+  display:inline-flex;padding:7px 18px;border-radius:6px;font-size:12px;
+  font-weight:700;transition:all .4s ease;
+}
+.mb-cta-ghost{
+  display:inline-flex;padding:7px 18px;border-radius:6px;font-size:12px;
+  font-weight:600;border:1.5px solid;transition:all .4s ease;opacity:.7;
+}
+.mb-cards{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
+  border-top:1px solid;transition:all .4s ease;
+}
+.mb-card{
+  padding:16px 18px;border-right:1px solid;transition:all .4s ease;
+}
+.mb-card:last-child{border-right:none}
+.mb-card-title{font-size:12px;font-weight:700;margin-bottom:4px;transition:all .4s ease}
+.mb-card-body{font-size:11px;opacity:.5;transition:all .4s ease}
+
+/* Presets */
+.preset-panel{
+  position:fixed;bottom:52px;left:0;right:0;z-index:90;
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:12px 24px;display:none;max-height:200px;overflow-y:auto;
+  box-shadow:0 -4px 16px rgba(0,0,0,.08);
+}
+.preset-panel.show{display:block}
+.preset-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border:1px solid var(--border);border-radius:6px;
+  margin-bottom:4px;cursor:pointer;transition:all .15s;font-size:12px;
+}
+.preset-item:hover{border-color:var(--accent);background:var(--accent2)}
+.preset-name{font-weight:600;color:var(--text)}
+.preset-meta{color:var(--text3);font-size:10px;font-family:var(--mono)}
+.preset-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px}
+.preset-del:hover{color:#c06050}
 .rule-row .strictness{display:flex;gap:2px;margin-left:8px}
 .strictness-btn{padding:3px 8px;font-size:10px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s}
 .strictness-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -271,6 +334,7 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
     <div class="section-title">核心旋钮</div>
     <div class="section-desc">调整三个核心参数，或从风格自动推断</div>
     <button class="infer-btn" id="inferBtn" onclick="inferFromStyle()">从风格推断</button>
+    <button class="infer-btn" id="ruleRecBtn" onclick="recommendRules()" style="margin-left:6px;border-color:var(--accent);color:var(--accent)">推荐规则</button>
     <div class="dial-group">
       <div class="dial" data-dial="designVariance">
         <div class="dial-header">
@@ -344,6 +408,31 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
     </div>
   </div>
 
+  <!-- Mood board -->
+  <div class="section">
+    <div class="section-title">合并预览</div>
+    <div class="section-desc">你选的颜色 + 风格 + 旋钮合在一起的效果</div>
+    <div class="moodboard" id="moodboard">
+      <div class="mb-hero" id="mbHero">
+        <div class="mb-bg" id="mbBg"></div>
+        <div class="mb-content">
+          <div class="mb-eyebrow" id="mbEyebrow">你的项目名</div>
+          <div class="mb-headline" id="mbHeadline">标题文字</div>
+          <div class="mb-sub" id="mbSub">一句话描述你的产品或服务</div>
+          <div class="mb-cta-row">
+            <div class="mb-cta" id="mbCta">开始使用</div>
+            <div class="mb-cta-ghost" id="mbCtaGhost">了解更多</div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-cards" id="mbCards">
+        <div class="mb-card"><div class="mb-card-title">功能一</div><div class="mb-card-body">简要描述</div></div>
+        <div class="mb-card"><div class="mb-card-title">功能二</div><div class="mb-card-body">简要描述</div></div>
+        <div class="mb-card"><div class="mb-card-title">功能三</div><div class="mb-card-body">简要描述</div></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Content brief -->
   <div class="section">
     <div class="section-title">内容描述</div>
@@ -352,10 +441,14 @@ main{max-width:1400px;margin:0 auto;padding:20px 24px}
   </div>
 </main>
 
+<div class="preset-panel" id="presetPanel"></div>
+
 <div class="bottom-bar">
   <div class="info">已调:</div>
   <div class="selection" id="selectionText">23 条规则</div>
   <button class="reset-btn" onclick="resetAll()">重置默认</button>
+  <button class="reset-btn" onclick="showPresets()">预设</button>
+  <button class="reset-btn" onclick="savePreset()" style="border-color:var(--accent);color:var(--accent)">保存</button>
   <button class="confirm-btn" onclick="confirmOutput()">确认输出</button>
 </div>
 
@@ -585,6 +678,7 @@ function updateDial(dial) {
   if (dial === 'motionIntensity') updateMotionPreview();
   if (dial === 'designVariance') updateVariancePreview();
   if (dial === 'visualDensity') updateDensityPreview();
+  updateMoodBoard();
 }
 
 function updateVariancePreview() {
@@ -636,6 +730,261 @@ function replayMotion() {
   const stage = document.getElementById('motionStage');
   const items = stage.querySelectorAll('.mp-item');
   items.forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+}
+
+// ── Mood Board ──
+const STYLE_MOODS = {
+  'apple':{bg:'#fbfbfd',fg:'#1d1d1f',accent:'#0071e3',hero:'center'},
+  'stripe':{bg:'#635bff',fg:'#fff',accent:'#a259ff',hero:'center'},
+  'notion':{bg:'#fff',fg:'#37352f',accent:'#9b59b6',hero:'left'},
+  'linear':{bg:'#0a0a0a',fg:'#e0e0e0',accent:'#5e6ad2',hero:'left'},
+  'vercel':{bg:'#000',fg:'#fff',accent:'#fff',hero:'center'},
+  'figma':{bg:'#f5f5f5',fg:'#333',accent:'#a259ff',hero:'left'},
+  'spotify':{bg:'#121212',fg:'#fff',accent:'#1db954',hero:'left'},
+  'airbnb':{bg:'#ff385c',fg:'#fff',accent:'#fff',hero:'center'},
+  'nike':{bg:'#fafafa',fg:'#111',accent:'#ff4d00',hero:'left'},
+  'tesla':{bg:'#0a0a0a',fg:'#e8e8e8',accent:'#cc0000',hero:'center'},
+  'github':{bg:'#0d1117',fg:'#c9d1d9',accent:'#58a6ff',hero:'left'},
+  'dribbble':{bg:'#fff',fg:'#333',accent:'#ea4c89',hero:'left'},
+  'medium':{bg:'#ffc500',fg:'#1a1a1a',accent:'#1a1a1a',hero:'center'},
+  'product-hunt':{bg:'#fafafa',fg:'#333',accent:'#da552f',hero:'left'},
+  'brutalist':{bg:'#00ff00',fg:'#000',accent:'#ff0000',hero:'left'},
+  'discord':{bg:'#36393f',fg:'#dcddde',accent:'#5865f2',hero:'left'},
+  'youtube':{bg:'#fff',fg:'#0f0f0f',accent:'#ff0000',hero:'left'},
+  'twitch':{bg:'#0e0e10',fg:'#efeff1',accent:'#9146ff',hero:'left'},
+  'netflix':{bg:'#141414',fg:'#e5e5e5',accent:'#e50914',hero:'center'},
+  'slack':{bg:'#fff',fg:'#1a1a1a',accent:'#611f69',hero:'left'},
+  'framer':{bg:'#0a0a0a',fg:'#fff',accent:'#0066ff',hero:'center'},
+  'cursor':{bg:'#0a0a0a',fg:'#e0e0e0',accent:'#00d4aa',hero:'left'},
+  'opengpt':{bg:'#f7f7f8',fg:'#2d2d2d',accent:'#10a37f',hero:'left'},
+  'pinterest':{bg:'#fff',fg:'#211922',accent:'#e60023',hero:'left'},
+  'uber':{bg:'#09091a',fg:'#fff',accent:'#276ef1',hero:'center'},
+  'shopify':{bg:'#f6f5f0',fg:'#202223',accent:'#008060',hero:'left'},
+  'louis-vuitton':{bg:'#1b1b1b',fg:'#c4a265',accent:'#c4a265',hero:'center'},
+  'muji':{bg:'#f5f5f2',fg:'#5a5a5a',accent:'#999',hero:'center'},
+  'raycast':{bg:'#191919',fg:'#e8e8e8',accent:'#ff6363',hero:'left'},
+  'supabase':{bg:'#0a0a0a',fg:'#ededed',accent:'#3ecf8e',hero:'left'},
+  'loom':{bg:'#f5f0ff',fg:'#1a1a2e',accent:'#625df5',hero:'center'},
+  'heroku':{bg:'#430098',fg:'#fff',accent:'#c9c3e6',hero:'center'},
+  'docker':{bg:'#fff',fg:'#1a1a1a',accent:'#2496ed',hero:'left'},
+  'nvidia':{bg:'#1a1a1a',fg:'#eee',accent:'#76b900',hero:'left'},
+  'cloudflare':{bg:'#fff',fg:'#1a1a1a',accent:'#f6821f',hero:'left'},
+  'tailwind':{bg:'#0f172a',fg:'#e2e8f0',accent:'#38bdf8',hero:'left'},
+  'svelte':{bg:'#fff',fg:'#333',accent:'#ff3e00',hero:'center'},
+  'threejs':{bg:'#000',fg:'#fff',accent:'#049ef4',hero:'center'},
+  'itchio':{bg:'#1a1a2e',fg:'#e8e8e8',accent:'#fa5c5c',hero:'left'},
+  'bear':{bg:'#fafaf9',fg:'#2c2c2c',accent:'#e6a817',hero:'center'},
+  'hollywood':{bg:'#0a0a1a',fg:'#f0e6d3',accent:'#d4af37',hero:'center'},
+  // PPT styles
+  'guizang-magazine':{bg:'#2c2c2c',fg:'#d4c5a9',accent:'#8b7355',hero:'center'},
+  'guizang-swiss':{bg:'#000',fg:'#fff',accent:'#002fa7',hero:'left'},
+};
+
+function updateMoodBoard() {
+  const styleId = sourceStyle ? sourceStyle.styleId : null;
+  const colors = sourceColors ? sourceColors.colors : [];
+  const mood = styleId ? (STYLE_MOODS[styleId] || null) : null;
+  const v = dials.designVariance;
+  const d = dials.visualDensity;
+
+  // Determine colors
+  let bg, fg, accent;
+  if (colors.length >= 1) {
+    accent = colors[0].hex;
+    bg = sourceColors.mode === 'dark' ? '#0a0a0a' : '#fafafa';
+    fg = sourceColors.mode === 'dark' ? '#e8e8e8' : '#1a1a1a';
+  } else if (mood) {
+    bg = mood.bg; fg = mood.fg; accent = mood.accent;
+  } else {
+    bg = '#fafafa'; fg = '#1a1a1a'; accent = '#0090ff';
+  }
+
+  // Apply to mood board
+  const mbBg = document.getElementById('mbBg');
+  mbBg.style.background = bg;
+
+  const mbHero = document.getElementById('mbHero');
+  const isDark = isLight(bg) ? false : true;
+
+  // Eyebrow
+  const mbEyebrow = document.getElementById('mbEyebrow');
+  mbEyebrow.style.color = isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)';
+  mbEyebrow.style.textTransform = 'uppercase';
+
+  // Headline
+  const mbHeadline = document.getElementById('mbHeadline');
+  mbHeadline.style.color = isDark ? '#f0f0f0' : '#111';
+
+  // Sub
+  const mbSub = document.getElementById('mbSub');
+  mbSub.style.color = isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.45)';
+
+  // CTA
+  const mbCta = document.getElementById('mbCta');
+  mbCta.style.background = accent;
+  mbCta.style.color = isLight(accent) ? '#111' : '#fff';
+
+  // Ghost CTA
+  const mbCtaGhost = document.getElementById('mbCtaGhost');
+  mbCtaGhost.style.borderColor = isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.15)';
+  mbCtaGhost.style.color = isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.5)';
+
+  // Hero alignment based on variance
+  const align = v <= 4 ? 'center' : (mood && mood.hero === 'center' && v <= 6 ? 'center' : 'left');
+  mbHero.style.textAlign = align;
+  if (align === 'center') {
+    mbHero.style.alignItems = 'center';
+    document.querySelector('.mb-content').style.margin = '0 auto';
+  } else {
+    mbHero.style.alignItems = 'flex-start';
+    document.querySelector('.mb-content').style.margin = '0';
+  }
+
+  // Density: adjust padding
+  const pad = d <= 2 ? 48 : d <= 4 ? 36 : d <= 6 ? 28 : d <= 8 ? 20 : 14;
+  mbHero.style.padding = pad + 'px 32px';
+
+  // Cards section
+  const mbCards = document.getElementById('mbCards');
+  const cardBorder = isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)';
+  const cardBg = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)';
+  mbCards.style.borderColor = cardBorder;
+  mbCards.querySelectorAll('.mb-card').forEach(c => {
+    c.style.borderColor = cardBorder;
+    c.style.background = cardBg;
+  });
+  mbCards.querySelectorAll('.mb-card-title').forEach(t => t.style.color = fg);
+  mbCards.querySelectorAll('.mb-card-body').forEach(t => t.style.color = isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.35)');
+
+  // Card density
+  const cardPad = d <= 2 ? 24 : d <= 4 ? 16 : d <= 6 ? 12 : d <= 8 ? 8 : 6;
+  mbCards.querySelectorAll('.mb-card').forEach(c => c.style.padding = cardPad + 'px 18px');
+}
+
+function isLight(hex) {
+  if (!hex || hex.length < 7) return true;
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 128;
+}
+
+// ── Style-aware rule recommendations ──
+function recommendRules() {
+  if (!sourceStyle) return;
+  const id = sourceStyle.styleId || '';
+  const tags = (sourceStyle.tags || []).join(' ').toLowerCase();
+
+  // Reset all rules to default ON
+  initRuleState();
+
+  // Style-specific overrides
+  const isEditorial = /杂志|newspaper|编辑|serif|衬线|期刊|mono-journal/.test(tags) || /magazine|newspaper|mono-journal|editorial/.test(id);
+  const isMinimal = /极简|留白|clean|minimal|muji|zen|japandi/.test(tags) || /muji|zen-garden|scandinavian|japandi|modern-minimalist/.test(id);
+  const isBrutalist = /粗野|原始|brutalist|raw/.test(tags) || /brutalist|blockframe|neobrutalism|brutalism/.test(id);
+  const isDark = /深色|dark|暗黑|黑色/.test(tags) || /linear|vercel|tesla|github|spotify|discord|twitch|netflix|nvidia|tailwind|cursor|threejs|itchio/.test(id);
+  const isPlayful = /玩味|彩色|pop|memphis|kawaii/.test(tags) || /pop-art|memphis|kawaii|capsule/.test(id);
+
+  // Editorial: relax serif ban
+  if (isEditorial) {
+    if (typeof ruleState.serifOnlyWhenJustified === 'object') {
+      ruleState.serifOnlyWhenJustified.enabled = true;
+      ruleState.serifOnlyWhenJustified.strictness = 'discouraged';
+    }
+  }
+
+  // Minimal: relax some layout rules, keep it clean
+  if (isMinimal) {
+    ruleState.antiCenterHero = false; // minimal is often centered
+    ruleState.noAiPurple = true; // keep color strict
+  }
+
+  // Brutalist: relax many rules
+  if (isBrutalist) {
+    ruleState.antiCenterHero = false;
+    ruleState.sectionVarietyEnforcement = false;
+    ruleState.zigzagCap = false;
+  }
+
+  // Playful: relax AI tell rules slightly
+  if (isPlayful) {
+    if (typeof ruleState.emDashBan === 'object') {
+      ruleState.emDashBan.strictness = 'moderate';
+    }
+  }
+
+  // Dark themes: ensure contrast rules are strict
+  if (isDark) {
+    ruleState.contrastCheck = true;
+    ruleState.noAiPurple = true; // purple on dark is especially AI-y
+  }
+
+  // Re-render rules UI
+  renderRules();
+  updatePreview();
+  updateSelectionText();
+
+  const btn = document.getElementById('ruleRecBtn');
+  btn.textContent = '已推荐';
+  setTimeout(() => { btn.textContent = '推荐规则'; }, 1500);
+}
+
+// ── Presets ──
+const PRESET_KEY = 'taste-picker-presets';
+
+function getPresets() {
+  try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function savePreset() {
+  const name = prompt('预设名称：', new Date().toLocaleDateString('zh-CN'));
+  if (!name) return;
+  const presets = getPresets();
+  presets.push({
+    name: name,
+    dials: {...dials},
+    rules: JSON.parse(JSON.stringify(ruleState)),
+    ts: Date.now()
+  });
+  localStorage.setItem(PRESET_KEY, JSON.stringify(presets));
+  showPresets();
+}
+
+function loadPreset(idx) {
+  const presets = getPresets();
+  if (!presets[idx]) return;
+  const p = presets[idx];
+  dials.designVariance = p.dials.designVariance;
+  dials.motionIntensity = p.dials.motionIntensity;
+  dials.visualDensity = p.dials.visualDensity;
+  Object.assign(ruleState, JSON.parse(JSON.stringify(p.rules)));
+  renderRules();
+  updateDial('designVariance');
+  updateDial('motionIntensity');
+  updateDial('visualDensity');
+  document.getElementById('presetPanel').classList.remove('show');
+}
+
+function deletePreset(idx, e) {
+  e.stopPropagation();
+  const presets = getPresets();
+  presets.splice(idx, 1);
+  localStorage.setItem(PRESET_KEY, JSON.stringify(presets));
+  showPresets();
+}
+
+function showPresets() {
+  const panel = document.getElementById('presetPanel');
+  const presets = getPresets();
+  if (presets.length === 0) {
+    panel.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:var(--text3)">还没有保存的预设。调整好旋钮和规则后点「保存」。</div>';
+  } else {
+    panel.innerHTML = presets.map((p, i) => `
+      <div class="preset-item" onclick="loadPreset(${i})">
+        <div><span class="preset-name">${p.name}</span> <span class="preset-meta">${p.dials.designVariance}/${p.dials.motionIntensity}/${p.dials.visualDensity}</span></div>
+        <button class="preset-del" onclick="deletePreset(${i},event)" title="删除">&#10005;</button>
+      </div>
+    `).join('');
+  }
+  panel.classList.toggle('show');
 }
 
 function initDials() {
@@ -878,6 +1227,7 @@ updateSelectionText();
 updateMotionPreview();
 updateVariancePreview();
 updateDensityPreview();
+updateMoodBoard();
 </script>
 </body>
 </html>
